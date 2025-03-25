@@ -1,63 +1,84 @@
 import Link from "next/link"
-import { FileText, GraduationCap, Home, Settings, Upload, Users } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button"
+import { 
+  LayoutDashboard, 
+  Users, 
+  BookOpen, 
+  Settings, 
+  FileText, 
+  HelpCircle, 
+  Upload
+} from "lucide-react"
 
-export function DashboardNav({ isAdmin, isSupervisor }) {
-  const baseItems = [
+export function DashboardNav({ isAdmin = false }) {
+  const adminMenuItems = [
     {
-      title: "Dashboard",
-      href: isAdmin ? "/dashboard/admin" : isSupervisor ? "/dashboard/supervisor" : "/dashboard/student",
-      icon: <Home className="mr-2 h-4 w-4" />,
+      label: "Dashboard",
+      href: "/admin/dashboard",
+      icon: LayoutDashboard,
     },
     {
-      title: "Past Exams",
-      href: "/past-exams",
-      icon: <FileText className="mr-2 h-4 w-4" />,
+      label: "Users",
+      href: "/admin/users",
+      icon: Users,
     },
     {
-      title: "Projects & Theses",
-      href: "/projects",
-      icon: <GraduationCap className="mr-2 h-4 w-4" />,
+      label: "Resources",
+      href: "/admin/resources",
+      icon: BookOpen,
     },
     {
-      title: "Upload",
-      href: "/upload",
-      icon: <Upload className="mr-2 h-4 w-4" />,
-    },
-  ]
-  
-  const adminItems = [
-    {
-      title: "User Management",
-      href: "/users",
-      icon: <Users className="mr-2 h-4 w-4" />,
+      label: "Approvals",
+      href: "/admin/approvals",
+      icon: FileText,
     },
     {
-      title: "Settings",
-      href: "/settings",
-      icon: <Settings className="mr-2 h-4 w-4" />,
+      label: "Settings",
+      href: "/admin/settings",
+      icon: Settings,
     },
   ]
-  
-  const supervisorItems = [
+
+  const studentMenuItems = [
     {
-      title: "Pending Approvals",
-      href: "/approvals",
-      icon: <FileText className="mr-2 h-4 w-4" />,
+      label: "Dashboard",
+      href: "/student/dashboard",
+      icon: LayoutDashboard,
     },
+    {
+      label: "Courses",
+      href: "/student/courses",
+      icon: BookOpen,
+    },
+    {
+      label: "Resources",
+      href: "/student/resources",
+      icon: FileText,
+    },
+    {
+      label: "Upload",
+      href: "/student/uploads",
+      icon: Upload,
+    }
   ]
-  
-  const items = isAdmin ? [...baseItems, ...adminItems] : isSupervisor ? [...baseItems, ...supervisorItems] : baseItems
-  
+
+  const menuItems = isAdmin ? adminMenuItems : studentMenuItems
+
   return (
-    <nav className="grid items-start gap-2">
-      {items.map((item, index) => (
-        <Link key={index} href={item.href} className={cn(buttonVariants({ variant: "ghost" }), "justify-start")}>
-          {item.icon}
-          {item.title}
-        </Link>
-      ))}
+    <nav className="bg-blue-800 text-white h-full px-4 pt-4 rounded-lg shadow-lg">
+      <div className="space-y-2">
+        {menuItems.map((item) => (
+          <Link 
+            key={item.label}
+            href={item.href}
+            className="flex items-center p-3 rounded-lg hover:bg-blue-700 transition-colors group"
+          >
+            <item.icon 
+              className="mr-3 h-6 w-6 text-white group-hover:scale-110 transition-transform" 
+            />
+            <span className="text-sm font-medium">{item.label}</span>
+          </Link>
+        ))}
+      </div>
     </nav>
   )
 }

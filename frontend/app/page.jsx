@@ -1,149 +1,152 @@
+"use client"
+
+import React, { useState } from 'react'
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { BookOpen, FileText, GraduationCap, Search, Upload, Users } from "lucide-react"
+import { BookOpen, FileText, Search, Users, Menu, X } from "lucide-react"
 
 export default function Home() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6" />
-            <span className="text-xl font-bold">CUG Repository</span>
+    <div className="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen flex flex-col">
+      <header className="sticky top-0 z-50 w-full bg-white/80 shadow-md backdrop-blur-md">
+        <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
+          <div className="w-full flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BookOpen className="h-8 w-8 text-blue-600" />
+              <span className="text-2xl font-extrabold text-blue-800">CUG Repository</span>
+            </div>
+            {/* Mobile Menu Toggle */}
+            <button 
+              className="md:hidden text-blue-600 hover:text-blue-800"
+              onClick={toggleMobileMenu}
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
+          
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex flex-col md:flex-row items-center gap-6">
+            <Link href="/" className="text-blue-700 hover:text-blue-900 transition-colors">
               Home
             </Link>
-            <Link
-              href="/about"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
+            <Link href="/about" className="text-blue-700 hover:text-blue-900 transition-colors">
               About
             </Link>
-            <Link
-              href="/contact"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
+            <Link href="/contact" className="text-blue-700 hover:text-blue-900 transition-colors">
               Contact
             </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/login" className="px-4  bg-blue-600 text-white rounded-lg hover:bg-blue-700 py-2 transition-colors">
+                Login
+              </Link>
+              <Link href="/register" className="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+                Register
+              </Link>
+            </div>
           </nav>
-          <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="outline">Log in</Button>
-            </Link>
-            <Link href="/register">
-              <Button>Register</Button>
-            </Link>
-          </div>
+
+          {/* Mobile Navigation */}
+          {isMobileMenuOpen && (
+            <nav className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg">
+              <div className="container mx-auto px-4 py-4 space-y-4">
+                <Link 
+                  href="/" 
+                  className="block text-blue-700 hover:text-blue-900 transition-colors"
+                  onClick={toggleMobileMenu}
+                >
+                  Home
+                </Link>
+                <Link 
+                  href="/about" 
+                  className="block text-blue-700 hover:text-blue-900 transition-colors"
+                  onClick={toggleMobileMenu}
+                >
+                  About
+                </Link>
+                <Link 
+                  href="/contact" 
+                  className="block text-blue-700 hover:text-blue-900 transition-colors"
+                  onClick={toggleMobileMenu}
+                >
+                  Contact
+                </Link>
+                <div className="flex flex-col gap-4">
+                  <Link 
+                    href="/login" 
+                    className="block text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    onClick={toggleMobileMenu}
+                  >
+                    Log in
+                  </Link>
+                  <Link 
+                    href="/register" 
+                    className="block text-center px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                    onClick={toggleMobileMenu}
+                  >
+                    Register
+                  </Link>
+                </div>
+              </div>
+            </nav>
+          )}
         </div>
       </header>
+
+      {/* Rest of the component remains the same as the original */}
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-muted/50 to-muted">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-2">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-                    Catholic University of Ghana Repository System
-                  </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    A centralized platform for storing, organizing, and accessing past exam questions, theses, and final
-                    year projects.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link href="/register">
-                    <Button size="lg" className="gap-1">
-                      <Users className="h-4 w-4" />
-                      Register Now
-                    </Button>
-                  </Link>
-                  <Link href="/search">
-                    <Button size="lg" variant="outline" className="gap-1">
-                      <Search className="h-4 w-4" />
-                      Search Repository
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="flex items-center justify-center">
-                <Card className="w-full max-w-md">
-                  <CardContent className="p-6">
-                    <div className="grid gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="rounded-full bg-primary/10 p-3">
-                          <FileText className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-medium">Past Exam Questions</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Access previous semester exam questions for better preparation.
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="rounded-full bg-primary/10 p-3">
-                          <GraduationCap className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-medium">Theses & Projects</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Browse through final year projects and theses for research inspiration.
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="rounded-full bg-primary/10 p-3">
-                          <Upload className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-medium">Easy Submission</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Submit your work securely with our streamlined upload process.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="mx-auto flex max-w-[58rem] flex-col items-center justify-center gap-4 text-center">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                Features of our Repository System
-              </h2>
-              <p className="max-w-[85%] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Our system provides a comprehensive solution for managing academic resources at CUG.
+        <section className="container mx-auto px-4 py-16 lg:py-24">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-blue-900 leading-tight">
+                Catholic University of Ghana Repository
+              </h1>
+              <p className="text-xl text-blue-700 opacity-80">
+                A comprehensive platform for storing, organizing, and accessing academic resources efficiently.
               </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link 
+                  href="/register" 
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Users className="h-5 w-5" />
+                  Register Now
+                </Link>
+              </div>
             </div>
-            <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-8 xl:gap-10 mt-8">
-              {features.map((feature) => (
-                <Card key={feature.title} className="flex flex-col items-center text-center">
-                  <CardContent className="flex flex-col items-center gap-2 p-6">
-                    <div className="rounded-full bg-primary/10 p-3">{feature.icon}</div>
-                    <h3 className="text-lg font-medium">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="bg-white rounded-xl shadow-2xl p-8">
+              <div className="space-y-6">
+                {features.map((feature) => (
+                  <div key={feature.title} className="flex items-center gap-4 bg-blue-50 p-4 rounded-lg">
+                    <div className="bg-blue-200 p-3 rounded-full">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-blue-900">{feature.title}</h3>
+                      <p className="text-blue-700 text-sm">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
       </main>
-      <footer className="w-full border-t bg-background py-6">
-        <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
-          <p className="text-sm text-muted-foreground">© 2024 Catholic University of Ghana. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <Link href="/terms" className="text-sm text-muted-foreground hover:underline">
+
+      <footer className="bg-white py-8 border-t">
+        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-blue-700 mb-4 md:mb-0">
+            © 2024 Catholic University of Ghana. All rights reserved.
+          </p>
+          <div className="flex gap-4">
+            <Link href="/terms" className="text-blue-600 hover:underline">
               Terms of Service
             </Link>
-            <Link href="/privacy" className="text-sm text-muted-foreground hover:underline">
+            <Link href="/privacy" className="text-blue-600 hover:underline">
               Privacy Policy
             </Link>
           </div>
@@ -157,22 +160,21 @@ const features = [
   {
     title: "Centralized Storage",
     description: "Store all academic resources in one secure location for easy access.",
-    icon: <BookOpen className="h-6 w-6 text-primary" />,
+    icon: <BookOpen className="h-6 w-6 text-blue-600" />,
   },
   {
     title: "Advanced Search",
     description: "Find resources quickly with our powerful search functionality.",
-    icon: <Search className="h-6 w-6 text-primary" />,
+    icon: <Search className="h-6 w-6 text-blue-600" />,
   },
   {
     title: "User Management",
     description: "Role-based access control for students, faculty, and administrators.",
-    icon: <Users className="h-6 w-6 text-primary" />,
+    icon: <Users className="h-6 w-6 text-blue-600" />,
   },
   {
     title: "File Management",
     description: "Upload, download, and organize files with ease.",
-    icon: <FileText className="h-6 w-6 text-primary" />,
-  },
+    icon: <FileText className="h-6 w-6 text-blue-600" />,
+  }
 ]
-

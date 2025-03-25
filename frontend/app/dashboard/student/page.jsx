@@ -1,19 +1,21 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookOpen, FileText, GraduationCap, LogOut, Search, Upload, User } from "lucide-react"
-import { DashboardNav } from "@/components/DashboardNav"
+import { BookOpen, FileText, GraduationCap, LogOut, Search, Upload, User, Users, X, Menu, X as XIcon } from "lucide-react"
 import { DashboardHeader } from "@/components/DashboardHeader"
-import ResourceCard from "@/components/ResourceCard"
-
+import { DashboardNav } from "@/components/DashboardNav"
+import DataTable from "@/components/DataTable"
+import { cn } from "@/lib/utils"
 
 export default function StudentDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [activeTab, setActiveTab] = useState("past-exams")
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const pastExams = [
     {
@@ -23,6 +25,7 @@ export default function StudentDashboard() {
       department: "Computer Science",
       uploadedBy: "Dr. John Smith",
       uploadDate: "2023-12-15",
+      status: "Approved",
     },
     {
       id: 2,
@@ -31,6 +34,7 @@ export default function StudentDashboard() {
       department: "Computer Science",
       uploadedBy: "Dr. Sarah Johnson",
       uploadDate: "2023-10-20",
+      status: "Approved",
     },
     {
       id: 3,
@@ -39,6 +43,7 @@ export default function StudentDashboard() {
       department: "Computer Science",
       uploadedBy: "Prof. Michael Brown",
       uploadDate: "2023-12-10",
+      status: "Approved",
     },
   ]
 
@@ -50,6 +55,7 @@ export default function StudentDashboard() {
       department: "Computer Science",
       uploadedBy: "James Wilson",
       uploadDate: "2023-06-15",
+      status: "Pending",
     },
     {
       id: 2,
@@ -58,6 +64,7 @@ export default function StudentDashboard() {
       department: "Computer Science",
       uploadedBy: "Emily Davis",
       uploadDate: "2023-06-10",
+      status: "Approved",
     },
     {
       id: 3,
@@ -66,122 +73,206 @@ export default function StudentDashboard() {
       department: "Computer Science",
       uploadedBy: "Robert Johnson",
       uploadDate: "2023-05-28",
+      status: "Approved",
     },
   ]
 
-  const filteredExams = pastExams.filter(
-    (exam) =>
-      exam.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      exam.department.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const filteredExams = useMemo(() => {
+    return pastExams.filter(
+      (exam) =>
+        exam.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        exam.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        exam.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        exam.uploadedBy.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [pastExams, searchQuery])
 
-  const filteredProjects = projects.filter(
-    (project) =>
-      project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.department.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const filteredProjects = useMemo(() => {
+    return projects.filter(
+      (project) =>
+        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.uploadedBy.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [projects, searchQuery])
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-blue-50">
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div 
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-lg animate-slide-in-left">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h2 className="text-lg font-semibold">Menu</h2>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <XIcon className="h-6 w-6" />
+              </Button>
+            </div>
+            <div className="p-4">
+              <DashboardNav />
+            </div>
+          </div>
+        </div>
+      )}
+
       <DashboardHeader />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
+      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-0 lg:grid-cols-[240px_1fr] pt-16">
+        {/* Mobile Menu Toggle */}
+        <div className="md:hidden absolute top-16 left-4 z-40">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="bg-blue-100 hover:bg-blue-200"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="h-6 w-6 text-blue-700" />
+          </Button>
+        </div>
+
+        {/* Desktop Sidebar */}
+        <aside className="-ml-2 hidden h-full w-full shrink-0 md:block">
           <DashboardNav />
         </aside>
-        <main className="flex w-full flex-col overflow-hidden">
-          <div className="flex items-center justify-between py-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back, Student! Access your academic resources here.</p>
+
+        <main className="flex w-full flex-col overflow-hidden p-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
+            <div className="mb-4 md:mb-0">
+              <h1 className="text-2xl md:text-3xl font-bold text-blue-800 tracking-tight">Student Dashboard</h1>
+              <p className="text-sm text-blue-600">Access your academic resources and track your progress.</p>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/profile">
-                <Button variant="outline" size="icon">
-                  <User className="h-4 w-4" />
+                <Button variant="outline" size="icon" className="bg-blue-100 hover:bg-blue-200">
+                  <User className="h-4 w-4 text-blue-700" />
                 </Button>
               </Link>
               <Link href="/">
-                <Button variant="outline" size="icon">
-                  <LogOut className="h-4 w-4" />
+                <Button variant="outline" size="icon" className="bg-red-100 hover:bg-red-200">
+                  <LogOut className="h-4 w-4 text-red-700" />
                 </Button>
               </Link>
             </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Available Past Exams</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{pastExams.length}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Available Projects</CardTitle>
-                <GraduationCap className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{projects.length}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Your Downloads</CardTitle>
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">12</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Your Uploads</CardTitle>
-                <Upload className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">2</div>
-              </CardContent>
-            </Card>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {[
+              { title: "Past Exams", icon: FileText, value: pastExams.length, color: "blue" },
+              { title: "Projects", icon: GraduationCap, value: projects.length, color: "green" },
+              { title: "Downloads", icon: BookOpen, value: 12, color: "yellow" },
+              { title: "Uploads", icon: Upload, value: 2, color: "purple" }
+            ].map(({ title, icon: Icon, value, color }) => (
+              <Card key={title} className={`bg-${color}-100 border-${color}-200 hover:shadow-md transition-shadow`}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className={`text-sm font-medium text-${color}-800`}>{title}</CardTitle>
+                  <Icon className={`h-4 w-4 text-${color}-600`} />
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold text-${color}-900`}>{value}</div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          <div className="my-6">
+
+          <div className="mb-6 relative">
             <div className="flex items-center gap-4">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search for resources..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-md"
-              />
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
+                <Input
+                  placeholder="Search exams or projects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-white border-blue-200 focus:ring-2 focus:ring-blue-300"
+                />
+                {searchQuery && (
+                  <X 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 cursor-pointer hover:text-gray-700" 
+                    onClick={() => setSearchQuery("")} 
+                  />
+                )}
+              </div>
             </div>
           </div>
-          <Tabs defaultValue="past-exams" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="past-exams">Past Exams</TabsTrigger>
-              <TabsTrigger value="projects">Projects & Theses</TabsTrigger>
+
+          <Tabs 
+            defaultValue="past-exams" 
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-4"
+          >
+            <TabsList className="w-full bg-blue-100">
+              <TabsTrigger 
+                value="past-exams" 
+                className={cn(
+                  "w-1/2 data-[state=active]:bg-blue-600 data-[state=active]:text-white",
+                  activeTab === "past-exams" ? "text-white bg-blue-600" : "text-blue-800"
+                )}
+              >
+                Past Exams
+              </TabsTrigger>
+              <TabsTrigger 
+                value="projects" 
+                className={cn(
+                  "w-1/2 data-[state=active]:bg-blue-600 data-[state=active]:text-white",
+                  activeTab === "projects" ? "text-white bg-blue-600" : "text-blue-800"
+                )}
+              >
+                Projects & Theses
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="past-exams" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredExams.length > 0 ? (
-                  filteredExams.map((exam) => <ResourceCard key={exam.id} resource={exam} />)
-                ) : (
-                  <div className="col-span-full text-center py-6">
-                    <p className="text-muted-foreground">No past exams found matching your search.</p>
-                  </div>
-                )}
-              </div>
+              <DataTable
+                data={filteredExams}
+                columns={[
+                  { header: "Title", accessorKey: "title" },
+                  { header: "Type", accessorKey: "type" },
+                  { header: "Department", accessorKey: "department" },
+                  { header: "Uploaded By", accessorKey: "uploadedBy" },
+                  { header: "Upload Date", accessorKey: "uploadDate" },
+                  { header: "Status", accessorKey: "status" },
+                  {
+                    header: "Actions",
+                    cell: () => (
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="bg-blue-100 hover:bg-blue-200 text-blue-800">
+                          Download
+                        </Button>
+                      </div>
+                    ),
+                  },
+                ]}
+              />
             </TabsContent>
             <TabsContent value="projects" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredProjects.length > 0 ? (
-                  filteredProjects.map((project) => <ResourceCard key={project.id} resource={project} />)
-                ) : (
-                  <div className="col-span-full text-center py-6">
-                    <p className="text-muted-foreground">No projects or theses found matching your search.</p>
-                  </div>
-                )}
-              </div>
+              <DataTable
+                data={filteredProjects}
+                columns={[
+                  { header: "Title", accessorKey: "title" },
+                  { header: "Type", accessorKey: "type" },
+                  { header: "Department", accessorKey: "department" },
+                  { header: "Uploaded By", accessorKey: "uploadedBy" },
+                  { header: "Upload Date", accessorKey: "uploadDate" },
+                  { header: "Status", accessorKey: "status" },
+                  {
+                    header: "Actions",
+                    cell: () => (
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="bg-blue-100 hover:bg-blue-200 text-blue-800">
+                          View
+                        </Button>
+                      </div>
+                    ),
+                  },
+                ]}
+              />
             </TabsContent>
           </Tabs>
         </main>
