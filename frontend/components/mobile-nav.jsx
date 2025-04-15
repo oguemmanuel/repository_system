@@ -1,13 +1,13 @@
 "use client"
 
-import React, { useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
-import { DashboardNav } from "./DashboardNav"
+import DashboardNav from "./dashboard-nav"
 
-export function MobileNav() {
+const MobileNav = () => {
   const [open, setOpen] = useState(false)
 
   return (
@@ -44,3 +44,5 @@ function MobileLink({ href, onOpenChange, className, children, ...props }) {
     </Link>
   )
 }
+
+export default MobileNav

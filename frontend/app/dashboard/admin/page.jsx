@@ -1,302 +1,751 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookOpen, FileText, LogOut, Search, User, Users, Filter, X, Menu, X as XIcon } from "lucide-react"
-import { DashboardHeader } from "@/components/DashboardHeader"
-import { DashboardNav } from "@/components/DashboardNav"
-import DataTable from "@/components/DataTable"
-import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toast } from "sonner"
+import { BookOpen, FileText, LogOut, Search, User, Users, Plus, Pencil, Trash2 } from "lucide-react"
+import DashboardNav from "@/components/dashboard-nav"
+import DataTable from "@/components/data-table"
+import DashboardHeader from "@/components/dashboard-header"
 
-export default function AdminDashboard() {
+const AdminDashboard = () => {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("users")
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [users, setUsers] = useState([])
+  const [resources, setResources] = useState([])
+  const [pendingResources, setPendingResources] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalResources: 0,
+    pendingApprovals: 0,
+    activeUsers: 0,
+  })
 
-  const users = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@cug.edu.gh",
-      role: "Student",
-      department: "Computer Science",
-      registrationDate: "2023-09-01",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@cug.edu.gh",
-      role: "Student",
-      department: "Computer Science",
-      registrationDate: "2023-09-02",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Dr. Michael Brown",
-      email: "michael.brown@cug.edu.gh",
-      role: "Faculty",
-      department: "Computer Science",
-      registrationDate: "2023-08-15",
-      status: "Active",
-    },
-    {
-      id: 4,
-      name: "Prof. Sarah Johnson",
-      email: "sarah.johnson@cug.edu.gh",
-      role: "Supervisor",
-      department: "Computer Science",
-      registrationDate: "2023-08-10",
-      status: "Active",
-    },
-    {
-      id: 5,
-      name: "Robert Wilson",
-      email: "robert.wilson@cug.edu.gh",
-      role: "Student",
-      department: "Computer Science",
-      registrationDate: "2023-09-05",
-      status: "Inactive",
-    },
-  ]
+  // New user form state
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false)
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [newUser, setNewUser] = useState({
+    username: "",
+    email: "",
+    password: "",
+    fullName: "",
+    indexNumber: "",
+    phoneNumber: "",
+    role: "student",
+    department: "",
+  })
 
-  const resources = [
-    {
-      id: 1,
-      title: "Introduction to Computer Science - Final Exam 2023",
-      type: "Past Exam",
-      department: "Computer Science",
-      uploadedBy: "Dr. John Smith",
-      uploadDate: "2023-12-15",
-      status: "Approved",
-    },
-    {
-      id: 2,
-      title: "Data Structures and Algorithms - Midterm 2023",
-      type: "Past Exam",
-      department: "Computer Science",
-      uploadedBy: "Dr. Sarah Johnson",
-      uploadDate: "2023-10-20",
-      status: "Approved",
-    },
-    {
-      id: 3,
-      title: "Development of a Smart Attendance System using Facial Recognition",
-      type: "Final Year Project",
-      department: "Computer Science",
-      uploadedBy: "James Wilson",
-      uploadDate: "2023-06-15",
-      status: "Pending",
-    },
-    {
-      id: 4,
-      title: "Blockchain-based Secure Voting System",
-      type: "Final Year Project",
-      department: "Computer Science",
-      uploadedBy: "Emily Davis",
-      uploadDate: "2023-06-10",
-      status: "Approved",
-    },
-    {
-      id: 5,
-      title: "Machine Learning Approach to Predict Student Performance",
-      type: "Thesis",
-      department: "Computer Science",
-      uploadedBy: "Robert Johnson",
-      uploadDate: "2023-05-28",
-      status: "Approved",
-    },
-  ]
+  // Fetch data on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/auth/me", {
+          credentials: "include",
+        })
 
-  const filteredUsers = useMemo(() => {
-    return users.filter(
-      (user) =>
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.department.toLowerCase().includes(searchQuery.toLowerCase())
+        if (!response.ok) {
+          router.push("/login")
+          return
+        }
+
+        const data = await response.json()
+
+        if (data.user.role !== "admin") {
+          router.push(`/dashboard/${data.user.role}`)
+          return
+        }
+
+        fetchData()
+      } catch (error) {
+        console.error("Auth check error:", error)
+        router.push("/login")
+      }
+    }
+
+    checkAuth()
+  }, [router])
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      // Fetch users
+      const usersResponse = await fetch("http://localhost:5000/api/users", {
+        credentials: "include",
+      })
+
+      if (usersResponse.ok) {
+        const usersData = await usersResponse.json()
+        setUsers(usersData.users || [])
+        setStats((prev) => ({ ...prev, totalUsers: usersData.total || 0 }))
+      }
+
+      // Fetch resources
+      const resourcesResponse = await fetch("http://localhost:5000/api/resources", {
+        credentials: "include",
+      })
+
+      if (resourcesResponse.ok) {
+        const resourcesData = await resourcesResponse.json()
+        setResources(resourcesData.resources || [])
+        setStats((prev) => ({ ...prev, totalResources: resourcesData.total || 0 }))
+      }
+
+      // Fetch pending resources
+      const pendingResponse = await fetch("http://localhost:5000/api/resources/pending/admin", {
+        credentials: "include",
+      })
+
+      if (pendingResponse.ok) {
+        const pendingData = await pendingResponse.json()
+        setPendingResources(pendingData.resources || [])
+        setStats((prev) => ({ ...prev, pendingApprovals: pendingData.count || 0 }))
+      }
+
+      // Fetch active users count
+      const activeUsersResponse = await fetch("http://localhost:5000/api/users?isActive=true", {
+        credentials: "include",
+      })
+
+      if (activeUsersResponse.ok) {
+        const activeUsersData = await activeUsersResponse.json()
+        setStats((prev) => ({ ...prev, activeUsers: activeUsersData.total || 0 }))
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error)
+      toast.error("Failed to load data")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddUser = async (e) => {
+    e.preventDefault()
+    try {
+      const response = await fetch("http://localhost:5000/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(newUser),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to create user")
+      }
+
+      toast.success("User created successfully")
+      setIsAddUserOpen(false)
+      setNewUser({
+        username: "",
+        email: "",
+        password: "",
+        fullName: "",
+        indexNumber: "",
+        phoneNumber: "",
+        role: "student",
+        department: "",
+      })
+      fetchData() // Refresh data
+    } catch (error) {
+      console.error("Error creating user:", error)
+      toast.error(error.message || "Failed to create user")
+    }
+  }
+
+  const handleEditUser = async (e) => {
+    e.preventDefault()
+    try {
+      const response = await fetch(`http://localhost:5000/api/users/${selectedUser.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          fullName: selectedUser.fullName,
+          phoneNumber: selectedUser.phoneNumber,
+          department: selectedUser.department,
+          role: selectedUser.role,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to update user")
+      }
+
+      // Update role if changed
+      if (selectedUser.originalRole !== selectedUser.role) {
+        const roleResponse = await fetch(`http://localhost:5000/api/users/${selectedUser.id}/role`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ role: selectedUser.role }),
+        })
+
+        if (!roleResponse.ok) {
+          const errorData = await roleResponse.json()
+          throw new Error(errorData.message || "Failed to update user role")
+        }
+      }
+
+      toast.success("User updated successfully")
+      setIsEditUserOpen(false)
+      setSelectedUser(null)
+      fetchData() // Refresh data
+    } catch (error) {
+      console.error("Error updating user:", error)
+      toast.error(error.message || "Failed to update user")
+    }
+  }
+
+  const handleDeleteUser = async (userId) => {
+    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      return
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+        method: "DELETE",
+        credentials: "include",
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to delete user")
+      }
+
+      toast.success("User deleted successfully")
+      fetchData() // Refresh data
+    } catch (error) {
+      console.error("Error deleting user:", error)
+      toast.error(error.message || "Failed to delete user")
+    }
+  }
+
+  const handleToggleUserStatus = async (userId, currentStatus) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/users/${userId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ isActive: !currentStatus }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || `Failed to ${currentStatus ? "deactivate" : "activate"} user`)
+      }
+
+      toast.success(`User ${currentStatus ? "deactivated" : "activated"} successfully`)
+      fetchData() // Refresh data
+    } catch (error) {
+      console.error("Error toggling user status:", error)
+      toast.error(error.message || `Failed to ${currentStatus ? "deactivate" : "activate"} user`)
+    }
+  }
+
+  const handleApproveResource = async (resourceId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/resources/${resourceId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ status: "approved" }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to approve resource")
+      }
+
+      toast.success("Resource approved successfully")
+      fetchData() // Refresh data
+    } catch (error) {
+      console.error("Error approving resource:", error)
+      toast.error(error.message || "Failed to approve resource")
+    }
+  }
+
+  const handleRejectResource = async (resourceId, reason) => {
+    if (!reason) {
+      reason = prompt("Please provide a reason for rejection:")
+      if (!reason) return // User cancelled
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/resources/${resourceId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          status: "rejected",
+          rejectionReason: reason,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to reject resource")
+      }
+
+      toast.success("Resource rejected successfully")
+      fetchData() // Refresh data
+    } catch (error) {
+      console.error("Error rejecting resource:", error)
+      toast.error(error.message || "Failed to reject resource")
+    }
+  }
+
+  const handleDeleteResource = async (resourceId) => {
+    if (!confirm("Are you sure you want to delete this resource? This action cannot be undone.")) {
+      return
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/resources/${resourceId}`, {
+        method: "DELETE",
+        credentials: "include",
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to delete resource")
+      }
+
+      toast.success("Resource deleted successfully")
+      fetchData() // Refresh data
+    } catch (error) {
+      console.error("Error deleting resource:", error)
+      toast.error(error.message || "Failed to delete resource")
+    }
+  }
+
+  const filteredUsers = users.filter(
+    (user) =>
+      user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.department?.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  const filteredResources = resources.filter(
+    (resource) =>
+      resource.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      resource.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      resource.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      resource.uploadedByName?.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  const filteredPendingResources = pendingResources.filter(
+    (resource) =>
+      resource.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      resource.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      resource.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      resource.uploadedByName?.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <DashboardHeader />
+        <div className="container flex-1 items-center justify-center flex">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </div>
     )
-  }, [users, searchQuery])
-
-  const filteredResources = useMemo(() => {
-    return resources.filter(
-      (resource) =>
-        resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        resource.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        resource.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        resource.uploadedBy.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  }, [resources, searchQuery])
+  }
 
   return (
-    <div className="flex min-h-screen flex-col bg-blue-50">
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div 
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          <div className="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-lg animate-slide-in-left">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h2 className="text-lg font-semibold">Menu</h2>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <XIcon className="h-6 w-6" />
-              </Button>
-            </div>
-            <div className="p-4">
-              <DashboardNav isAdmin={true} />
-            </div>
-          </div>
-        </div>
-      )}
-
+    <div className="flex min-h-screen flex-col">
       <DashboardHeader />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-0 lg:grid-cols-[240px_1fr] pt-16">
-        {/* Mobile Menu Toggle */}
-        <div className="md:hidden absolute top-16 left-4 z-40">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="bg-blue-100 hover:bg-blue-200"
-            onClick={() => setIsMobileMenuOpen(true)}
-          >
-            <Menu className="h-6 w-6 text-blue-700" />
-          </Button>
-        </div>
-
-        {/* Desktop Sidebar */}
-        <aside className="-ml-2 hidden h-full w-full shrink-0 md:block">
+      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
+        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
           <DashboardNav isAdmin={true} />
         </aside>
-
-        <main className="flex w-full flex-col overflow-hidden p-4">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
-            <div className="mb-4 md:mb-0">
-              <h1 className="text-2xl md:text-3xl font-bold text-blue-800 tracking-tight">Admin Dashboard</h1>
-              <p className="text-sm text-blue-600">Manage users, resources, and system settings.</p>
+        <main className="flex w-full flex-col overflow-hidden">
+          <div className="flex items-center justify-between py-6">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+              <p className="text-muted-foreground">Manage users, resources, and system settings.</p>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/profile">
-                <Button variant="outline" size="icon" className="bg-blue-100 hover:bg-blue-200">
-                  <User className="h-4 w-4 text-blue-700" />
+                <Button variant="outline" size="icon">
+                  <User className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/">
-                <Button variant="outline" size="icon" className="bg-red-100 hover:bg-red-200">
-                  <LogOut className="h-4 w-4 text-red-700" />
+              <Link href="/logout">
+                <Button variant="outline" size="icon">
+                  <LogOut className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {[
-              { title: "Total Users", icon: Users, value: users.length, color: "blue" },
-              { title: "Total Resources", icon: BookOpen, value: resources.length, color: "green" },
-              { title: "Pending Approvals", icon: FileText, value: resources.filter((r) => r.status === "Pending").length, color: "yellow" },
-              { title: "Active Users", icon: User, value: users.filter((u) => u.status === "Active").length, color: "purple" }
-            ].map(({ title, icon: Icon, value, color }) => (
-              <Card key={title} className={`bg-${color}-100 border-${color}-200 hover:shadow-md transition-shadow`}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className={`text-sm font-medium text-${color}-800`}>{title}</CardTitle>
-                  <Icon className={`h-4 w-4 text-${color}-600`} />
-                </CardHeader>
-                <CardContent>
-                  <div className={`text-2xl font-bold text-${color}-900`}>{value}</div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Resources</CardTitle>
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalResources}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingApprovals}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                <User className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.activeUsers}</div>
+              </CardContent>
+            </Card>
           </div>
-
-          <div className="mb-6 relative">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-grow">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
+          <div className="my-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 flex-1">
+                <Search className="h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search users or resources..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white border-blue-200 focus:ring-2 focus:ring-blue-300"
+                  className="max-w-md"
                 />
-                {searchQuery && (
-                  <X 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 cursor-pointer hover:text-gray-700" 
-                    onClick={() => setSearchQuery("")} 
-                  />
-                )}
               </div>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="bg-blue-100 hover:bg-blue-200"
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-              >
-                <Filter className="h-4 w-4 text-blue-700" />
-              </Button>
+              {activeTab === "users" && (
+                <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-1">
+                      <Plus className="h-4 w-4" />
+                      Add User
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New User</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleAddUser} className="space-y-4 py-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="username">Username</Label>
+                          <Input
+                            id="username"
+                            value={newUser.username}
+                            onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={newUser.email}
+                            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input
+                          id="fullName"
+                          value={newUser.fullName}
+                          onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="role">Role</Label>
+                          <Select
+                            value={newUser.role}
+                            onValueChange={(value) => setNewUser({ ...newUser, role: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="student">Student</SelectItem>
+                              <SelectItem value="supervisor">Supervisor</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="department">Department</Label>
+                          <Input
+                            id="department"
+                            value={newUser.department}
+                            onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
+                            required={newUser.role === "supervisor"}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="indexNumber">Index Number</Label>
+                          <Input
+                            id="indexNumber"
+                            value={newUser.indexNumber}
+                            onChange={(e) => setNewUser({ ...newUser, indexNumber: e.target.value })}
+                            required={newUser.role === "student"}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="phoneNumber">Phone Number</Label>
+                          <Input
+                            id="phoneNumber"
+                            value={newUser.phoneNumber}
+                            onChange={(e) => setNewUser({ ...newUser, phoneNumber: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          value={newUser.password}
+                          onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit">Create User</Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
-            {isFilterOpen && (
-              <div className="mt-4 p-4 bg-white border border-blue-100 rounded-lg shadow-sm">
-                {/* Advanced filter options can be added here */}
-                <p className="text-sm text-blue-600">Advanced filtering coming soon!</p>
-              </div>
-            )}
           </div>
-
-          <Tabs 
-            defaultValue="users" 
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="space-y-4"
-          >
-            <TabsList className="w-full bg-blue-100">
-              <TabsTrigger 
-                value="users" 
-                className={cn(
-                  "w-1/2 data-[state=active]:bg-blue-600 data-[state=active]:text-white",
-                  activeTab === "users" ? "text-white bg-blue-600" : "text-blue-800"
-                )}
-              >
-                Users
-              </TabsTrigger>
-              <TabsTrigger 
-                value="resources" 
-                className={cn(
-                  "w-1/2 data-[state=active]:bg-blue-600 data-[state=active]:text-white",
-                  activeTab === "resources" ? "text-white bg-blue-600" : "text-blue-800"
-                )}
-              >
-                Resources
-              </TabsTrigger>
+          <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="users">Users</TabsTrigger>
+              <TabsTrigger value="resources">Resources</TabsTrigger>
+              <TabsTrigger value="pending">Pending Approvals</TabsTrigger>
             </TabsList>
             <TabsContent value="users" className="space-y-4">
               <DataTable
                 data={filteredUsers}
                 columns={[
-                  { header: "Name", accessorKey: "name" },
+                  { header: "Name", accessorKey: "fullName" },
                   { header: "Email", accessorKey: "email" },
-                  { header: "Role", accessorKey: "role" },
+                  {
+                    header: "Role",
+                    accessorKey: "role",
+                    cell: (info) => (
+                      <Badge
+                        variant={
+                          info.getValue() === "admin"
+                            ? "destructive"
+                            : info.getValue() === "supervisor"
+                              ? "default"
+                              : "secondary"
+                        }
+                      >
+                        {info.getValue()}
+                      </Badge>
+                    ),
+                  },
                   { header: "Department", accessorKey: "department" },
-                  { header: "Registration Date", accessorKey: "registrationDate" },
-                  { header: "Status", accessorKey: "status" },
+                  {
+                    header: "Status",
+                    accessorKey: "isActive",
+                    cell: (info) => (
+                      <Badge variant={info.getValue() ? "success" : "outline"}>
+                        {info.getValue() ? "Active" : "Inactive"}
+                      </Badge>
+                    ),
+                  },
                   {
                     header: "Actions",
-                    cell: () => (
+                    cell: (info) => (
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="bg-blue-100 hover:bg-blue-200 text-blue-800">
-                          Edit
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUser({
+                              ...info.row.original,
+                              originalRole: info.row.original.role,
+                            })
+                            setIsEditUserOpen(true)
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="destructive" size="sm" className="bg-red-500 hover:bg-red-600">
+                        <Button
+                          variant={info.row.original.isActive ? "destructive" : "outline"}
+                          size="sm"
+                          onClick={() => handleToggleUserStatus(info.row.original.id, info.row.original.isActive)}
+                        >
+                          {info.row.original.isActive ? "Deactivate" : "Activate"}
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => handleDeleteUser(info.row.original.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ),
+                  },
+                ]}
+              />
+
+              {/* Edit User Dialog */}
+              {selectedUser && (
+                <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit User</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleEditUser} className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-fullName">Full Name</Label>
+                        <Input
+                          id="edit-fullName"
+                          value={selectedUser.fullName}
+                          onChange={(e) => setSelectedUser({ ...selectedUser, fullName: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-role">Role</Label>
+                          <Select
+                            value={selectedUser.role}
+                            onValueChange={(value) => setSelectedUser({ ...selectedUser, role: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="student">Student</SelectItem>
+                              <SelectItem value="supervisor">Supervisor</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-department">Department</Label>
+                          <Input
+                            id="edit-department"
+                            value={selectedUser.department || ""}
+                            onChange={(e) => setSelectedUser({ ...selectedUser, department: e.target.value })}
+                            required={selectedUser.role === "supervisor"}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-phoneNumber">Phone Number</Label>
+                        <Input
+                          id="edit-phoneNumber"
+                          value={selectedUser.phoneNumber || ""}
+                          onChange={(e) => setSelectedUser({ ...selectedUser, phoneNumber: e.target.value })}
+                        />
+                      </div>
+                      <DialogFooter>
+                        <Button type="submit">Update User</Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </TabsContent>
+            <TabsContent value="resources" className="space-y-4">
+              <DataTable
+                data={filteredResources}
+                columns={[
+                  { header: "Title", accessorKey: "title" },
+                  {
+                    header: "Type",
+                    accessorKey: "type",
+                    cell: (info) => {
+                      const type = info.getValue()
+                      let displayType = type
+
+                      if (type === "past-exam") displayType = "Past Exam"
+                      else if (type === "mini-project") displayType = "Mini Project"
+                      else if (type === "final-project") displayType = "Final Year Project"
+                      else if (type === "thesis") displayType = "Thesis"
+
+                      return displayType
+                    },
+                  },
+                  { header: "Department", accessorKey: "department" },
+                  { header: "Uploaded By", accessorKey: "uploadedByName" },
+                  {
+                    header: "Status",
+                    accessorKey: "status",
+                    cell: (info) => (
+                      <Badge
+                        variant={
+                          info.getValue() === "approved"
+                            ? "success"
+                            : info.getValue() === "rejected"
+                              ? "destructive"
+                              : "outline"
+                        }
+                      >
+                        {info.getValue()}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    header: "Actions",
+                    cell: (info) => (
+                      <div className="flex gap-2">
+                        <Link href={`/resources/${info.row.original.id}`}>
+                          <Button variant="outline" size="sm">
+                            View
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteResource(info.row.original.id)}
+                        >
                           Delete
                         </Button>
                       </div>
@@ -305,30 +754,48 @@ export default function AdminDashboard() {
                 ]}
               />
             </TabsContent>
-            <TabsContent value="resources" className="space-y-4">
+            <TabsContent value="pending" className="space-y-4">
               <DataTable
-                data={filteredResources}
+                data={filteredPendingResources}
                 columns={[
                   { header: "Title", accessorKey: "title" },
-                  { header: "Type", accessorKey: "type" },
+                  {
+                    header: "Type",
+                    accessorKey: "type",
+                    cell: (info) => {
+                      const type = info.getValue()
+                      let displayType = type
+
+                      if (type === "past-exam") displayType = "Past Exam"
+                      else if (type === "mini-project") displayType = "Mini Project"
+                      else if (type === "final-project") displayType = "Final Year Project"
+                      else if (type === "thesis") displayType = "Thesis"
+
+                      return displayType
+                    },
+                  },
                   { header: "Department", accessorKey: "department" },
-                  { header: "Uploaded By", accessorKey: "uploadedBy" },
-                  { header: "Upload Date", accessorKey: "uploadDate" },
-                  { header: "Status", accessorKey: "status" },
+                  { header: "Uploaded By", accessorKey: "uploadedByName" },
+                  { header: "Student", accessorKey: "studentName" },
+                  { header: "Supervisor", accessorKey: "supervisorName" },
                   {
                     header: "Actions",
                     cell: (info) => (
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="bg-blue-100 hover:bg-blue-200 text-blue-800">
-                          View
-                        </Button>
-                        {info.row.original.status === "Pending" && (
-                          <Button variant="default" size="sm" className="bg-green-500 hover:bg-green-600">
-                            Approve
+                        <Link href={`/resources/${info.row.original.id}`}>
+                          <Button variant="outline" size="sm">
+                            View
                           </Button>
-                        )}
-                        <Button variant="destructive" size="sm" className="bg-red-500 hover:bg-red-600">
-                          Delete
+                        </Link>
+                        <Button variant="default" size="sm" onClick={() => handleApproveResource(info.row.original.id)}>
+                          Approve
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleRejectResource(info.row.original.id)}
+                        >
+                          Reject
                         </Button>
                       </div>
                     ),
@@ -342,3 +809,5 @@ export default function AdminDashboard() {
     </div>
   )
 }
+
+export default AdminDashboard

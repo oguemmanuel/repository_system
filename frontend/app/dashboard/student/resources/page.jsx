@@ -4,29 +4,22 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { BookOpen, FileText, LogOut, Search, Upload, User } from "lucide-react"
+import { BookOpen, Search, Upload } from "lucide-react"
 import DashboardNav from "@/components/dashboard-nav"
 import DashboardHeader from "@/components/dashboard-header"
 import DataTable from "@/components/data-table"
 
-export default function StudentDashboard() {
+export default function StudentResources() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [myResources, setMyResources] = useState([])
   const [approvedResources, setApprovedResources] = useState([])
-  const [stats, setStats] = useState({
-    totalUploads: 0,
-    pendingResources: 0,
-    approvedResources: 0,
-    rejectedResources: 0,
-  })
 
   // Check authentication on component mount
   useEffect(() => {
@@ -68,7 +61,7 @@ export default function StudentDashboard() {
         }
 
         setUser(data.user)
-        fetchData(data.user)
+        fetchResources()
       } catch (error) {
         console.error("Auth check error:", error)
         router.push("/login")
@@ -78,7 +71,7 @@ export default function StudentDashboard() {
     checkAuth()
   }, [router])
 
-  const fetchData = async (userData) => {
+  const fetchResources = async () => {
     setLoading(true)
     try {
       // Fetch student's resources
@@ -91,40 +84,14 @@ export default function StudentDashboard() {
         credentials: "include",
       })
 
-      // Fetch user analytics
-      const analyticsResponse = await fetch("http://localhost:5000/api/analytics/user", {
-        credentials: "include",
-      })
-
       if (myResourcesResponse.ok) {
         const myResourcesData = await myResourcesResponse.json()
         setMyResources(myResourcesData.resources || [])
-
-        // Calculate stats from resources
-        const pendingCount = myResourcesData.resources.filter((r) => r.status === "pending").length
-        const approvedCount = myResourcesData.resources.filter((r) => r.status === "approved").length
-        const rejectedCount = myResourcesData.resources.filter((r) => r.status === "rejected").length
-
-        setStats((prev) => ({
-          ...prev,
-          totalUploads: myResourcesData.resources.length,
-          pendingResources: pendingCount,
-          approvedResources: approvedCount,
-          rejectedResources: rejectedCount,
-        }))
       }
 
       if (approvedResourcesResponse.ok) {
         const approvedResourcesData = await approvedResourcesResponse.json()
         setApprovedResources(approvedResourcesData.resources || [])
-      }
-
-      if (analyticsResponse.ok) {
-        const analyticsData = await analyticsResponse.json()
-        setStats((prev) => ({
-          ...prev,
-          ...analyticsData.analytics,
-        }))
       }
     } catch (error) {
       console.error("Error fetching resources:", error)
@@ -170,77 +137,25 @@ export default function StudentDashboard() {
         <main className="flex w-full flex-col overflow-hidden">
           <div className="flex items-center justify-between py-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Student Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back, {user?.fullName || "Student"}</p>
+              <h1 className="text-3xl font-bold tracking-tight">Resources</h1>
+              <p className="text-muted-foreground">Manage and explore academic resources</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Link href="/profile">
-                <Button variant="outline" size="icon">
-                  <User className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/logout">
-                <Button variant="outline" size="icon">
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">My Uploads</CardTitle>
-                <Upload className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalUploads}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.pendingResources}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Approved</CardTitle>
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.approvedResources}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.rejectedResources}</div>
-              </CardContent>
-            </Card>
+            <Link href="/upload">
+              <Button className="gap-1">
+                <Upload className="h-4 w-4" />
+                Upload Resource
+              </Button>
+            </Link>
           </div>
           <div className="my-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2 flex-1">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search resources..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="max-w-md"
-                />
-              </div>
-              <Link href="/upload">
-                <Button className="gap-1">
-                  <Upload className="h-4 w-4" />
-                  Upload Resource
-                </Button>
-              </Link>
+            <div className="flex items-center gap-2 flex-1">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search resources..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="max-w-md"
+              />
             </div>
           </div>
           <Tabs defaultValue="my-resources" className="space-y-4">
