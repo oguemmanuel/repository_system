@@ -55,6 +55,42 @@ router.get("/supervisors/department/:department", isAuthenticated, async (req, r
   }
 })
 
+// Get available supervisors for project submission
+router.get("/supervisors/available", isAuthenticated, async (req, res) => {
+  try {
+    const { department } = req.query
+
+    let query = `
+      SELECT id, fullName, department, email 
+      FROM users 
+      WHERE role = 'supervisor' AND isActive = true
+    `
+    const queryParams = []
+
+    // Filter by department if provided
+    if (department) {
+      query += " AND department = ?"
+      queryParams.push(department)
+    }
+
+    query += " ORDER BY fullName ASC"
+
+    const [supervisors] = await db.query(query, queryParams)
+
+    res.status(200).json({
+      success: true,
+      supervisors,
+    })
+  } catch (error) {
+    console.error("Error fetching available supervisors:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error fetching available supervisors",
+      error: error.message,
+    })
+  }
+})
+
 // Get all students (admin only)
 router.get("/students", isAuthenticated, isAuthorized(["admin", "supervisor"]), async (req, res) => {
   try {

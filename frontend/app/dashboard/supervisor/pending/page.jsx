@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
-import { Search, FileText, ThumbsUp, ThumbsDown, Eye, Loader2 } from "lucide-react"
+import { Search, FileText, ThumbsUp, ThumbsDown, Eye, Loader2, Download } from "lucide-react"
 import DashboardNav from "@/components/dashboard-nav"
 import DashboardHeader from "@/components/dashboard-header"
 import DataTable from "@/components/data-table"
@@ -142,6 +142,11 @@ export default function PendingApprovalsPage() {
     }
   }
 
+  const handleDownload = (resourceId) => {
+    // Open the download URL in a new tab
+    window.open(`http://localhost:5000/api/resources/${resourceId}/download`, "_blank")
+  }
+
   const filteredPendingResources = pendingResources.filter(
     (resource) =>
       resource.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -236,7 +241,8 @@ export default function PendingApprovalsPage() {
                     <div className="flex gap-2">
                       <Link href={`/resources/${info.row.original.id}`}>
                         <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
                         </Button>
                       </Link>
                       <Button
@@ -259,6 +265,10 @@ export default function PendingApprovalsPage() {
                       >
                         <ThumbsDown className="h-4 w-4 mr-1" />
                         Reject
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleDownload(info.row.original.id)}>
+                        <Download className="h-4 w-4 mr-1" />
+                        Download
                       </Button>
                     </div>
                   ),

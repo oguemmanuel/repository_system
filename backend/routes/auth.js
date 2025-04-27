@@ -3,12 +3,12 @@ const router = express.Router()
 const bcrypt = require("bcrypt")
 const db = require("../config/database")
 const { validateRegistration, validateLogin } = require("../middleware/validators")
-const { isAdmin } = require("../middleware/auth")
+
 
 // Register a new user
 router.post("/register", validateRegistration, async (req, res) => {
   try {
-    const { username, email, password, fullName, indexNumber, phoneNumber, role, department } = req.body
+    const { username, email, password, fullName, indexNumber, staffID, phoneNumber, role, department } = req.body
 
     // Check if email already exists
     const [existingUsers] = await db.query("SELECT * FROM users WHERE email = ? OR username = ?", [email, username])
@@ -20,16 +20,8 @@ router.post("/register", validateRegistration, async (req, res) => {
       })
     }
 
-    // Only admin can create admin or supervisor accounts
-    if (
-      (role === "admin" || role === "supervisor") &&
-      (!req.session || !req.session.user || req.session.user.role !== "admin")
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "Only administrators can create a supervisor accounts",
-      })
-    }
+    // REMOVED RESTRICTION: Previously only admin could create supervisor accounts
+    // Now anyone can register as a supervisor
 
     // Students must have an index number
     if ((role === "student" || !role) && !indexNumber) {
@@ -53,8 +45,8 @@ router.post("/register", validateRegistration, async (req, res) => {
 
     // Insert new user
     const [result] = await db.query(
-      "INSERT INTO users (username, email, password, fullName, indexNumber, phoneNumber, role, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [username, email, hashedPassword, fullName, indexNumber, phoneNumber, role || "student", department],
+      "INSERT INTO users (username, email, password, fullName, indexNumber, staffID, phoneNumber, role, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [username, email, hashedPassword, fullName, indexNumber, staffID, phoneNumber, role || "student", department],
     )
 
     // Return success without password

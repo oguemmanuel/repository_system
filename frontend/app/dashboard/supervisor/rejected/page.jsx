@@ -6,15 +6,15 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { Search, BookOpen, Download, Eye } from "lucide-react"
+import { Search, FileText, Download, Eye } from "lucide-react"
 import DashboardNav from "@/components/dashboard-nav"
 import DashboardHeader from "@/components/dashboard-header"
 import DataTable from "@/components/data-table"
 
-export default function ApprovedResourcesPage() {
+export default function RejectedResourcesPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
-  const [approvedResources, setApprovedResources] = useState([])
+  const [rejectedResources, setRejectedResources] = useState([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
 
@@ -52,19 +52,19 @@ export default function ApprovedResourcesPage() {
   const fetchData = async (supervisorId) => {
     setLoading(true)
     try {
-      // Fetch approved resources
-      const approvedResponse = await fetch(
-        `http://localhost:5000/api/resources?status=approved&supervisorId=${supervisorId}`,
+      // Fetch rejected resources
+      const rejectedResponse = await fetch(
+        `http://localhost:5000/api/resources?status=rejected&supervisorId=${supervisorId}`,
         {
           credentials: "include",
         },
       )
 
-      if (approvedResponse.ok) {
-        const approvedData = await approvedResponse.json()
-        setApprovedResources(approvedData.resources || [])
+      if (rejectedResponse.ok) {
+        const rejectedData = await rejectedResponse.json()
+        setRejectedResources(rejectedData.resources || [])
       } else {
-        toast.error("Failed to fetch approved resources")
+        toast.error("Failed to fetch rejected resources")
       }
     } catch (error) {
       console.error("Error fetching data:", error)
@@ -79,7 +79,7 @@ export default function ApprovedResourcesPage() {
     window.open(`http://localhost:5000/api/resources/${resourceId}/download`, "_blank")
   }
 
-  const filteredApprovedResources = approvedResources.filter(
+  const filteredRejectedResources = rejectedResources.filter(
     (resource) =>
       resource.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       resource.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -123,8 +123,8 @@ export default function ApprovedResourcesPage() {
         <main className="flex w-full flex-col overflow-hidden">
           <div className="flex items-center justify-between py-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Approved Resources</h1>
-              <p className="text-muted-foreground">View and manage resources you have approved.</p>
+              <h1 className="text-3xl font-bold tracking-tight">Rejected Resources</h1>
+              <p className="text-muted-foreground">View resources you have rejected.</p>
             </div>
           </div>
 
@@ -132,7 +132,7 @@ export default function ApprovedResourcesPage() {
             <div className="flex items-center gap-2">
               <Search className="h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search approved resources..."
+                placeholder="Search rejected resources..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-md"
@@ -140,9 +140,9 @@ export default function ApprovedResourcesPage() {
             </div>
           </div>
 
-          {filteredApprovedResources.length > 0 ? (
+          {filteredRejectedResources.length > 0 ? (
             <DataTable
-              data={filteredApprovedResources}
+              data={filteredRejectedResources}
               columns={[
                 { header: "Title", accessorKey: "title" },
                 {
@@ -157,19 +157,18 @@ export default function ApprovedResourcesPage() {
                   cell: (info) => info.getValue() || "N/A",
                 },
                 {
-                  header: "Approval Date",
+                  header: "Rejection Date",
                   accessorKey: "updatedAt",
                   cell: (info) => new Date(info.getValue()).toLocaleDateString(),
                 },
                 {
-                  header: "Views",
-                  accessorKey: "views",
-                  cell: (info) => info.getValue() || 0,
-                },
-                {
-                  header: "Downloads",
-                  accessorKey: "downloads",
-                  cell: (info) => info.getValue() || 0,
+                  header: "Rejection Reason",
+                  accessorKey: "rejectionReason",
+                  cell: (info) => (
+                    <div className="max-w-xs truncate" title={info.getValue()}>
+                      {info.getValue() || "No reason provided"}
+                    </div>
+                  ),
                 },
                 {
                   header: "Actions",
@@ -192,9 +191,9 @@ export default function ApprovedResourcesPage() {
             />
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No approved resources</h3>
-              <p className="text-muted-foreground mt-2">You haven't approved any resources yet.</p>
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium">No rejected resources</h3>
+              <p className="text-muted-foreground mt-2">You haven't rejected any resources yet.</p>
             </div>
           )}
         </main>

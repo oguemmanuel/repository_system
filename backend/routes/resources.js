@@ -39,21 +39,21 @@ const upload = multer({
 // Get all resources with pagination and filtering
 router.get("/", async (req, res) => {
   try {
-    const { page = 1, limit = 10, type, department, search, status, supervisorId, studentId } = req.query
+    const { page = 1, limit = 10, type, department, search, status, supervisorId, studentId, course } = req.query
     const offset = (page - 1) * limit
 
-    let query = ` 
-      SELECT r.*,  
-        u1.fullName AS uploadedByName,  
-        u2.fullName AS studentName,  
-        u3.fullName AS supervisorName, 
-        rm.year, rm.semester, rm.course, rm.tags 
-      FROM resources r 
-      LEFT JOIN users u1 ON r.uploadedBy = u1.id 
-      LEFT JOIN users u2 ON r.studentId = u2.id 
-      LEFT JOIN users u3 ON r.supervisorId = u3.id 
-      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId 
-      WHERE 1=1 
+    let query = `  
+      SELECT r.*,   
+        u1.fullName AS uploadedByName,   
+        u2.fullName AS studentName,   
+        u3.fullName AS supervisorName,  
+        rm.year, rm.semester, rm.course, rm.tags  
+      FROM resources r  
+      LEFT JOIN users u1 ON r.uploadedBy = u1.id  
+      LEFT JOIN users u2 ON r.studentId = u2.id  
+      LEFT JOIN users u3 ON r.supervisorId = u3.id  
+      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId  
+      WHERE 1=1  
     `
 
     const queryParams = []
@@ -70,8 +70,9 @@ router.get("/", async (req, res) => {
     }
 
     if (search) {
-      query += " AND (r.title LIKE ? OR r.description LIKE ?)"
-      queryParams.push(`%${search}%`, `%${search}%`)
+      query +=
+        " AND (r.title LIKE ? OR r.description LIKE ? OR u1.fullName LIKE ? OR u2.fullName LIKE ? OR u3.fullName LIKE ? OR rm.course LIKE ?)"
+      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
     }
 
     if (status) {
@@ -87,6 +88,11 @@ router.get("/", async (req, res) => {
     if (studentId) {
       query += " AND r.studentId = ?"
       queryParams.push(studentId)
+    }
+
+    if (course) {
+      query += " AND rm.course LIKE ?"
+      queryParams.push(`%${course}%`)
     }
 
     // Add status filter for non-admin users
@@ -135,21 +141,21 @@ router.get("/", async (req, res) => {
 // Get public resources (no authentication required)
 router.get("/public", async (req, res) => {
   try {
-    const { page = 1, limit = 10, type, department, search } = req.query
+    const { page = 1, limit = 10, type, department, search, course } = req.query
     const offset = (page - 1) * limit
 
-    let query = `
-      SELECT r.*,  
-        u1.fullName AS uploadedByName,  
-        u2.fullName AS studentName,  
-        u3.fullName AS supervisorName, 
-        rm.year, rm.semester, rm.course, rm.tags 
-      FROM resources r 
-      LEFT JOIN users u1 ON r.uploadedBy = u1.id 
-      LEFT JOIN users u2 ON r.studentId = u2.id 
-      LEFT JOIN users u3 ON r.supervisorId = u3.id 
-      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId 
-      WHERE r.status = 'approved'
+    let query = ` 
+      SELECT r.*,   
+        u1.fullName AS uploadedByName,   
+        u2.fullName AS studentName,   
+        u3.fullName AS supervisorName,  
+        rm.year, rm.semester, rm.course, rm.tags  
+      FROM resources r  
+      LEFT JOIN users u1 ON r.uploadedBy = u1.id  
+      LEFT JOIN users u2 ON r.studentId = u2.id  
+      LEFT JOIN users u3 ON r.supervisorId = u3.id  
+      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId  
+      WHERE r.status = 'approved' 
     `
 
     const queryParams = []
@@ -166,8 +172,14 @@ router.get("/public", async (req, res) => {
     }
 
     if (search) {
-      query += " AND (r.title LIKE ? OR r.description LIKE ?)"
-      queryParams.push(`%${search}%`, `%${search}%`)
+      query +=
+        " AND (r.title LIKE ? OR r.description LIKE ? OR u1.fullName LIKE ? OR u2.fullName LIKE ? OR u3.fullName LIKE ? OR rm.course LIKE ?)"
+      queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
+    }
+
+    if (course) {
+      query += " AND rm.course LIKE ?"
+      queryParams.push(`%${course}%`)
     }
 
     // Count total resources for pagination
@@ -202,20 +214,21 @@ router.get("/public", async (req, res) => {
 // Get featured resources for home page
 router.get("/featured", async (req, res) => {
   try {
-    const query = `
-      SELECT r.*,  
-        u1.fullName AS uploadedByName,  
-        u2.fullName AS studentName,  
-        u3.fullName AS supervisorName, 
-        rm.year, rm.semester, rm.course, rm.tags 
-      FROM resources r 
-      LEFT JOIN users u1 ON r.uploadedBy = u1.id 
-      LEFT JOIN users u2 ON r.studentId = u2.id 
-      LEFT JOIN users u3 ON r.supervisorId = u3.id 
-      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId 
-      WHERE r.status = 'approved'
-      ORDER BY r.views DESC, r.createdAt DESC
-      LIMIT 6
+    const query = ` 
+      SELECT r.*,   
+        u1.fullName AS uploadedByName,   
+        u2.fullName AS studentName,   
+        u3.fullName AS supervisorName,  
+        rm.year, rm.semester, rm.course, rm.tags,
+        u2.department AS studentDepartment  
+      FROM resources r  
+      LEFT JOIN users u1 ON r.uploadedBy = u1.id  
+      LEFT JOIN users u2 ON r.studentId = u2.id  
+      LEFT JOIN users u3 ON r.supervisorId = u3.id  
+      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId  
+      WHERE r.status = 'approved' 
+      ORDER BY r.views DESC, r.createdAt DESC 
+      LIMIT 10 
     `
 
     const [resources] = await db.query(query)
@@ -234,23 +247,68 @@ router.get("/featured", async (req, res) => {
   }
 })
 
-// Get a single resource by ID
+// Get recently approved resources
+router.get("/recent", async (req, res) => {
+  try {
+    const query = ` 
+      SELECT r.*,   
+        u1.fullName AS uploadedByName,   
+        u2.fullName AS studentName,   
+        u3.fullName AS supervisorName,  
+        rm.year, rm.semester, rm.course, rm.tags,
+        u2.department AS studentDepartment  
+      FROM resources r  
+      LEFT JOIN users u1 ON r.uploadedBy = u1.id  
+      LEFT JOIN users u2 ON r.studentId = u2.id  
+      LEFT JOIN users u3 ON r.supervisorId = u3.id  
+      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId  
+      WHERE r.status = 'approved' 
+      ORDER BY r.updatedAt DESC, r.createdAt DESC 
+      LIMIT 10 
+    `
+
+    const [resources] = await db.query(query)
+
+    res.status(200).json({
+      success: true,
+      resources,
+    })
+  } catch (error) {
+    console.error("Error fetching recent resources:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error fetching recent resources",
+      error: error.message,
+    })
+  }
+})
+
+// Get a single resource by ID with detailed information
 router.get("/:id", async (req, res) => {
   try {
     const resourceId = req.params.id
 
-    // Get resource details
+    // Get resource details with comprehensive information
     const [resources] = await db.query(
-      `SELECT r.*,  
-        u1.fullName AS uploadedByName,  
-        u2.fullName AS studentName,  
-        u3.fullName AS supervisorName, 
-        rm.year, rm.semester, rm.course, rm.tags 
-      FROM resources r 
-      LEFT JOIN users u1 ON r.uploadedBy = u1.id 
-      LEFT JOIN users u2 ON r.studentId = u2.id 
-      LEFT JOIN users u3 ON r.supervisorId = u3.id 
-      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId 
+      `SELECT r.*,   
+        u1.fullName AS uploadedByName,
+        u1.email AS uploaderEmail,
+        u1.department AS uploaderDepartment,
+        u2.fullName AS studentName,
+        u2.email AS studentEmail,
+        u2.indexNumber AS studentIndexNumber,
+        u2.department AS studentDepartment,
+        u3.fullName AS supervisorName,
+        u3.email AS supervisorEmail,
+        u3.department AS supervisorDepartment,
+        rm.year, rm.semester, rm.course, rm.tags,
+        DATE_FORMAT(r.createdAt, '%d %M %Y') AS formattedCreatedDate,
+        DATE_FORMAT(r.updatedAt, '%d %M %Y') AS formattedUpdatedDate
+      FROM resources r  
+      LEFT JOIN users u1 ON r.uploadedBy = u1.id  
+      LEFT JOIN users u2 ON r.studentId = u2.id  
+      LEFT JOIN users u3 ON r.supervisorId = u3.id  
+      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId  
       WHERE r.id = ?`,
       [resourceId],
     )
@@ -297,6 +355,19 @@ router.get("/:id", async (req, res) => {
       // Increment view count
       await db.query("UPDATE resources SET views = views + 1 WHERE id = ?", [resourceId])
     }
+
+    // Get comments for this resource
+    const [comments] = await db.query(
+      `SELECT c.*, u.fullName, u.role 
+       FROM comments c 
+       JOIN users u ON c.userId = u.id 
+       WHERE c.resourceId = ? 
+       ORDER BY c.createdAt DESC`,
+      [resourceId],
+    )
+
+    // Add comments to the resource object
+    resource.comments = comments
 
     res.status(200).json({
       success: true,
@@ -379,6 +450,145 @@ router.get("/:id/download", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error downloading resource",
+      error: error.message,
+    })
+  }
+})
+
+// Add this new route after the download resource route
+// Preview resource
+router.get("/:id/preview", async (req, res) => {
+  try {
+    const resourceId = req.params.id
+
+    // Get resource details
+    const [resources] = await db.query("SELECT * FROM resources WHERE id = ?", [resourceId])
+
+    if (resources.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Resource not found",
+      })
+    }
+
+    const resource = resources[0]
+
+    // Check if resource is approved or user is authorized
+    const isAuthenticated = req.session && req.session.user
+    const isAuthorized =
+      isAuthenticated &&
+      (resource.status === "approved" ||
+        req.session.user.id === resource.uploadedBy ||
+        req.session.user.role === "admin" ||
+        (req.session.user.role === "supervisor" && req.session.user.id === resource.supervisorId))
+
+    if (!isAuthenticated && resource.status !== "approved") {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to preview this resource",
+      })
+    }
+
+    if (isAuthenticated && !isAuthorized) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to preview this resource",
+      })
+    }
+
+    // Check if file exists
+    if (!fs.existsSync(resource.filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: "File not found",
+      })
+    }
+
+    // Log view if user is authenticated
+    if (isAuthenticated) {
+      await db.query(
+        "INSERT INTO resource_access_logs (resourceId, userId, action, ipAddress, userAgent) VALUES (?, ?, ?, ?, ?)",
+        [resourceId, req.session.user.id, "preview", req.ip, req.headers["user-agent"]],
+      )
+    }
+
+    // Get file extension
+    const fileExt = path.extname(resource.filePath).toLowerCase()
+
+    // Set appropriate content type based on file extension
+    let contentType = "application/octet-stream" // Default content type
+
+    if (fileExt === ".pdf") {
+      contentType = "application/pdf"
+    } else if (fileExt === ".doc" || fileExt === ".docx") {
+      contentType = "application/msword"
+    } else if (fileExt === ".ppt" || fileExt === ".pptx") {
+      contentType = "application/vnd.ms-powerpoint"
+    } else if (fileExt === ".txt") {
+      contentType = "text/plain"
+    } else if (fileExt === ".jpg" || fileExt === ".jpeg") {
+      contentType = "image/jpeg"
+    } else if (fileExt === ".png") {
+      contentType = "image/png"
+    }
+
+    // Set headers for inline display with proper security headers
+    res.setHeader("Content-Type", contentType)
+    res.setHeader("Content-Disposition", `inline; filename="${path.basename(resource.filePath)}"`)
+
+    // Add security headers to allow embedding in iframes
+    res.setHeader("X-Content-Type-Options", "nosniff")
+    res.setHeader("Content-Security-Policy", "default-src 'self'; object-src 'self'; frame-ancestors 'self'")
+    res.setHeader("X-Frame-Options", "SAMEORIGIN")
+
+    // Allow cross-origin resource sharing for the frontend
+    res.setHeader("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "http://localhost:3000")
+    res.setHeader("Access-Control-Allow-Credentials", "true")
+
+    // Stream the file
+    const fileStream = fs.createReadStream(resource.filePath)
+    fileStream.pipe(res)
+  } catch (error) {
+    console.error("Error previewing resource:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error previewing resource",
+      error: error.message,
+    })
+  }
+})
+
+// Get available supervisors for project submission
+router.get("/supervisors/available", isAuthenticated, async (req, res) => {
+  try {
+    const { department } = req.query
+
+    let query = `
+      SELECT id, fullName, department, email 
+      FROM users 
+      WHERE role = 'supervisor' AND isActive = true
+    `
+    const queryParams = []
+
+    // Filter by department if provided
+    if (department) {
+      query += " AND department = ?"
+      queryParams.push(department)
+    }
+
+    query += " ORDER BY fullName ASC"
+
+    const [supervisors] = await db.query(query, queryParams)
+
+    res.status(200).json({
+      success: true,
+      supervisors,
+    })
+  } catch (error) {
+    console.error("Error fetching available supervisors:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error fetching available supervisors",
       error: error.message,
     })
   }
@@ -491,8 +701,8 @@ router.post("/", isAuthenticated, upload.single("file"), validateResourceUpload,
 
     // Insert resource
     const [result] = await db.query(
-      `INSERT INTO resources  
-        (title, description, type, department, filePath, fileSize, fileType, uploadedBy, studentId, supervisorId, status, rejectionReason)  
+      `INSERT INTO resources   
+        (title, description, type, department, filePath, fileSize, fileType, uploadedBy, studentId, supervisorId, status, rejectionReason)   
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
       [
         title,
@@ -516,6 +726,23 @@ router.post("/", isAuthenticated, upload.single("file"), validateResourceUpload,
       await db.query(
         "INSERT INTO resource_metadata (resourceId, year, semester, course, tags) VALUES (?, ?, ?, ?, ?)",
         [resourceId, year || null, semester || null, course || null, tags || null],
+      )
+    }
+
+    // Notify supervisor if assigned
+    if (resolvedSupervisorId) {
+      await db.query(
+        "INSERT INTO notifications (userId, type, message, resourceId, isRead) VALUES (?, 'resource_assigned', ?, ?, false)",
+        [resolvedSupervisorId, `New project assigned for review: ${title}`, resourceId],
+      )
+    }
+
+    // Notify admin about new resource
+    const [admins] = await db.query("SELECT id FROM users WHERE role = 'admin'")
+    for (const admin of admins) {
+      await db.query(
+        "INSERT INTO notifications (userId, type, message, resourceId, isRead) VALUES (?, 'new_resource', ?, ?, false)",
+        [admin.id, `New ${type} uploaded: ${title}`, resourceId],
       )
     }
 
@@ -555,25 +782,29 @@ router.get("/pending/supervisor", isAuthenticated, isAuthorized(["supervisor"]),
     const supervisorId = req.session.user.id
     const { department } = req.session.user
 
-    let query = `
-      SELECT r.*,  
-        u1.fullName AS uploadedByName,  
-        u2.fullName AS studentName, 
-        rm.year, rm.semester, rm.course, rm.tags 
-      FROM resources r 
-      LEFT JOIN users u1 ON r.uploadedBy = u1.id 
-      LEFT JOIN users u2 ON r.studentId = u2.id 
-      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId 
-      WHERE r.status = 'pending' AND 
+    let query = ` 
+      SELECT r.*,   
+        u1.fullName AS uploadedByName,   
+        u2.fullName AS studentName,
+        u2.email AS studentEmail,
+        u2.indexNumber AS studentIndexNumber,
+        u2.department AS studentDepartment,
+        rm.year, rm.semester, rm.course, rm.tags,
+        DATE_FORMAT(r.createdAt, '%d %M %Y') AS formattedCreatedDate
+      FROM resources r  
+      LEFT JOIN users u1 ON r.uploadedBy = u1.id  
+      LEFT JOIN users u2 ON r.studentId = u2.id  
+      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId  
+      WHERE r.status = 'pending' AND  
       `
 
     const queryParams = []
 
     // For final year projects, supervisor can only approve projects in their department
     // For mini projects, any supervisor can approve
-    query += `(
-      (r.type = 'final-project' AND (r.supervisorId = ? OR r.department = ?)) OR 
-      (r.type = 'mini-project')
+    query += `( 
+      (r.type = 'final-project' AND (r.supervisorId = ? OR r.department = ?)) OR  
+      (r.type = 'mini-project') 
     )`
 
     queryParams.push(supervisorId, department)
@@ -600,17 +831,23 @@ router.get("/pending/supervisor", isAuthenticated, isAuthorized(["supervisor"]),
 router.get("/pending/admin", isAuthenticated, isAuthorized(["admin"]), async (req, res) => {
   try {
     const [resources] = await db.query(
-      `SELECT r.*,  
-        u1.fullName AS uploadedByName,  
-        u2.fullName AS studentName,
-        u3.fullName AS supervisorName,
-        rm.year, rm.semester, rm.course, rm.tags 
-      FROM resources r 
-      LEFT JOIN users u1 ON r.uploadedBy = u1.id 
-      LEFT JOIN users u2 ON r.studentId = u2.id 
-      LEFT JOIN users u3 ON r.supervisorId = u3.id
-      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId 
-      WHERE r.status = 'pending'
+      `SELECT r.*,   
+        u1.fullName AS uploadedByName,   
+        u2.fullName AS studentName, 
+        u2.email AS studentEmail,
+        u2.indexNumber AS studentIndexNumber,
+        u2.department AS studentDepartment,
+        u3.fullName AS supervisorName, 
+        u3.email AS supervisorEmail,
+        u3.department AS supervisorDepartment,
+        rm.year, rm.semester, rm.course, rm.tags,
+        DATE_FORMAT(r.createdAt, '%d %M %Y') AS formattedCreatedDate
+      FROM resources r  
+      LEFT JOIN users u1 ON r.uploadedBy = u1.id  
+      LEFT JOIN users u2 ON r.studentId = u2.id  
+      LEFT JOIN users u3 ON r.supervisorId = u3.id 
+      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId  
+      WHERE r.status = 'pending' 
       ORDER BY r.createdAt DESC`,
     )
 
@@ -635,15 +872,17 @@ router.get("/student/my-resources", isAuthenticated, isAuthorized(["student"]), 
     const studentId = req.session.user.id
 
     const [resources] = await db.query(
-      `SELECT r.*,  
-        u1.fullName AS uploadedByName,  
-        u3.fullName AS supervisorName,
-        rm.year, rm.semester, rm.course, rm.tags 
-      FROM resources r 
-      LEFT JOIN users u1 ON r.uploadedBy = u1.id 
-      LEFT JOIN users u3 ON r.supervisorId = u3.id
-      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId 
-      WHERE r.studentId = ? OR r.uploadedBy = ?
+      `SELECT r.*,   
+        u1.fullName AS uploadedByName,   
+        u3.fullName AS supervisorName, 
+        rm.year, rm.semester, rm.course, rm.tags,
+        DATE_FORMAT(r.createdAt, '%d %M %Y') AS formattedCreatedDate,
+        DATE_FORMAT(r.updatedAt, '%d %M %Y') AS formattedUpdatedDate
+      FROM resources r  
+      LEFT JOIN users u1 ON r.uploadedBy = u1.id  
+      LEFT JOIN users u3 ON r.supervisorId = u3.id 
+      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId  
+      WHERE r.studentId = ? OR r.uploadedBy = ? 
       ORDER BY r.createdAt DESC`,
       [studentId, studentId],
     )
@@ -670,7 +909,13 @@ router.patch("/:id/status", isAuthenticated, isSupervisorOrAdmin, validateResour
     const { status, rejectionReason } = req.body
 
     // Get resource details
-    const [resources] = await db.query("SELECT * FROM resources WHERE id = ?", [resourceId])
+    const [resources] = await db.query(
+      `SELECT r.*, u.id AS studentId, u.fullName AS studentName 
+       FROM resources r 
+       LEFT JOIN users u ON r.studentId = u.id 
+       WHERE r.id = ?`,
+      [resourceId],
+    )
 
     if (resources.length === 0) {
       return res.status(404).json({
@@ -696,25 +941,52 @@ router.patch("/:id/status", isAuthenticated, isSupervisorOrAdmin, validateResour
       }
     }
 
+    // Begin transaction
+    await db.query("START TRANSACTION")
+
     // Update resource status
-    const [result] = await db.query("UPDATE resources SET status = ?, rejectionReason = ? WHERE id = ?", [
-      status,
-      status === "rejected" ? rejectionReason : null,
-      resourceId,
-    ])
+    const [result] = await db.query(
+      "UPDATE resources SET status = ?, rejectionReason = ?, updatedAt = NOW() WHERE id = ?",
+      [status, status === "rejected" ? rejectionReason : null, resourceId],
+    )
 
     if (result.affectedRows === 0) {
+      await db.query("ROLLBACK")
       return res.status(404).json({
         success: false,
         message: "Resource not found",
       })
     }
 
+    // Create notification for the student
+    if (resource.studentId) {
+      const notificationMessage =
+        status === "approved"
+          ? `Your project "${resource.title}" has been approved`
+          : `Your project "${resource.title}" has been rejected: ${rejectionReason}`
+
+      await db.query(
+        "INSERT INTO notifications (userId, type, message, resourceId, isRead) VALUES (?, ?, ?, ?, false)",
+        [
+          resource.studentId,
+          status === "approved" ? "resource_approved" : "resource_rejected",
+          notificationMessage,
+          resourceId,
+        ],
+      )
+    }
+
+    // Commit transaction
+    await db.query("COMMIT")
+
     res.status(200).json({
       success: true,
       message: `Resource ${status === "approved" ? "approved" : "rejected"} successfully`,
     })
   } catch (error) {
+    // Rollback transaction on error
+    await db.query("ROLLBACK")
+
     console.error("Error updating resource status:", error)
     res.status(500).json({
       success: false,
@@ -755,7 +1027,7 @@ router.put("/:id", isAuthenticated, async (req, res) => {
     await db.query("START TRANSACTION")
 
     // Update resource
-    let query = "UPDATE resources SET title = ?, description = ?, department = ?, type = ?"
+    let query = "UPDATE resources SET title = ?, description = ?, department = ?, type = ?, updatedAt = NOW()"
     const queryParams = [title, description, department, type]
 
     // Update supervisor if provided
@@ -849,6 +1121,9 @@ router.delete("/:id", isAuthenticated, async (req, res) => {
     // Delete bookmarks
     await db.query("DELETE FROM bookmarks WHERE resourceId = ?", [resourceId])
 
+    // Delete notifications related to this resource
+    await db.query("DELETE FROM notifications WHERE resourceId = ?", [resourceId])
+
     // Delete resource
     await db.query("DELETE FROM resources WHERE id = ?", [resourceId])
 
@@ -872,6 +1147,109 @@ router.delete("/:id", isAuthenticated, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error deleting resource",
+      error: error.message,
+    })
+  }
+})
+
+// Add a comment to a resource
+router.post("/:id/comments", isAuthenticated, async (req, res) => {
+  try {
+    const resourceId = req.params.id
+    const { content } = req.body
+    const userId = req.session.user.id
+
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        message: "Comment content is required",
+      })
+    }
+
+    // Check if resource exists
+    const [resources] = await db.query("SELECT * FROM resources WHERE id = ?", [resourceId])
+
+    if (resources.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Resource not found",
+      })
+    }
+
+    // Insert comment
+    const [result] = await db.query("INSERT INTO comments (resourceId, userId, content) VALUES (?, ?, ?)", [
+      resourceId,
+      userId,
+      content,
+    ])
+
+    // Get the comment with user details
+    const [comments] = await db.query(
+      `SELECT c.*, u.fullName, u.role 
+       FROM comments c 
+       JOIN users u ON c.userId = u.id 
+       WHERE c.id = ?`,
+      [result.insertId],
+    )
+
+    // Notify resource owner if different from commenter
+    const resource = resources[0]
+    if (resource.uploadedBy !== userId) {
+      await db.query(
+        "INSERT INTO notifications (userId, type, message, resourceId, isRead) VALUES (?, 'new_comment', ?, ?, false)",
+        [resource.uploadedBy, `New comment on your resource "${resource.title}"`, resourceId],
+      )
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Comment added successfully",
+      comment: comments[0],
+    })
+  } catch (error) {
+    console.error("Error adding comment:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error adding comment",
+      error: error.message,
+    })
+  }
+})
+
+// Get comments for a resource
+router.get("/:id/comments", async (req, res) => {
+  try {
+    const resourceId = req.params.id
+
+    // Check if resource exists
+    const [resources] = await db.query("SELECT * FROM resources WHERE id = ?", [resourceId])
+
+    if (resources.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Resource not found",
+      })
+    }
+
+    // Get comments with user details
+    const [comments] = await db.query(
+      `SELECT c.*, u.fullName, u.role 
+       FROM comments c 
+       JOIN users u ON c.userId = u.id 
+       WHERE c.resourceId = ? 
+       ORDER BY c.createdAt DESC`,
+      [resourceId],
+    )
+
+    res.status(200).json({
+      success: true,
+      comments,
+    })
+  } catch (error) {
+    console.error("Error fetching comments:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error fetching comments",
       error: error.message,
     })
   }

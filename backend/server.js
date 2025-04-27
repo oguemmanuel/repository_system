@@ -14,6 +14,8 @@ const authRoutes = require("./routes/auth")
 const resourceRoutes = require("./routes/resources")
 const userRoutes = require("./routes/users")
 const analyticsRoutes = require("./routes/analitics")
+const notificationRoutes = require("./routes/notifications")
+const commentRoutes = require("./routes/comments")
 
 // Database connection
 const db = require("./config/database")
@@ -74,6 +76,8 @@ app.use("/api/auth", authRoutes)
 app.use("/api/resources", resourceRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/analytics", analyticsRoutes)
+app.use("/api/notifications", notificationRoutes)
+app.use("/api/comments", commentRoutes)
 
 // Error handling middleware
 app.use((err, req, res, next) => {

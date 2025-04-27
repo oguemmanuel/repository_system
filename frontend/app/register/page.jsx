@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
+import { CardFooter } from "@/components/ui/card"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -21,12 +22,14 @@ export default function RegisterPage() {
     confirmPassword: "",
     fullName: "",
     indexNumber: "",
+    staffID: "",
     phoneNumber: "",
     department: "",
-    role: "student", // Only student role is allowed now
+    role: "student", // Default to student role
   })
   const [loading, setLoading] = useState(false)
   const [loadingDepartments, setLoadingDepartments] = useState(true)
+  const [formErrors, setFormErrors] = useState({})
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -95,21 +98,22 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setFormErrors({})
 
     // Validate form
-    if (!formData.username || !formData.email || !formData.password || !formData.fullName) {
-      toast.error("Please fill in all required fields")
-      return
-    }
+    const errors = {}
+    if (!formData.username) errors.username = "Username is required"
+    if (!formData.email) errors.email = "Email is required"
+    if (!formData.password) errors.password = "Password is required"
+    if (!formData.fullName) errors.fullName = "Full name is required"
+    if (formData.role === "student" && !formData.indexNumber)
+      errors.indexNumber = "Index number is required for students"
+    if (formData.role === "supervisor" && !formData.staffID) errors.staffID = "Staff ID is required for supervisors"
+    if (formData.password !== formData.confirmPassword) errors.confirmPassword = "Passwords do not match"
 
-    // Validate index number for students
-    if (!formData.indexNumber) {
-      toast.error("Index number is required")
-      return
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match")
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      toast.error("Please correct the errors below")
       return
     }
 
@@ -126,10 +130,11 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
           fullName: formData.fullName,
-          indexNumber: formData.indexNumber,
+          indexNumber: formData.role === "student" ? formData.indexNumber : null,
+          staffID: formData.role === "supervisor" ? formData.staffID : null,
           phoneNumber: formData.phoneNumber,
           department: formData.department,
-          role: "student", // Hardcoded to student
+          role: formData.role,
         }),
       })
 
@@ -156,11 +161,24 @@ export default function RegisterPage() {
       </div>
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <CardTitle className="text-2xl">Student Registration</CardTitle>
-          <CardDescription>Create a new student account to access the repository</CardDescription>
+          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardDescription>Create a new account to access the repository</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select value={formData.role} onValueChange={(value) => handleSelectChange("role", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="supervisor">Supervisor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name *</Label>
@@ -172,18 +190,35 @@ export default function RegisterPage() {
                   placeholder="John Doe"
                   required
                 />
+                {formErrors.fullName && <p className="text-red-500 text-sm">{formErrors.fullName}</p>}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="indexNumber">Index Number *</Label>
-                <Input
-                  id="indexNumber"
-                  name="indexNumber"
-                  value={formData.indexNumber}
-                  onChange={handleInputChange}
-                  placeholder="e.g., CUG/001/19"
-                  required
-                />
-              </div>
+              {formData.role === "student" ? (
+                <div className="space-y-2">
+                  <Label htmlFor="indexNumber">Index Number *</Label>
+                  <Input
+                    id="indexNumber"
+                    name="indexNumber"
+                    value={formData.indexNumber}
+                    onChange={handleInputChange}
+                    placeholder="e.g., CUG/001/19"
+                    required
+                  />
+                  {formErrors.indexNumber && <p className="text-red-500 text-sm">{formErrors.indexNumber}</p>}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="staffID">Staff ID *</Label>
+                  <Input
+                    id="staffID"
+                    name="staffID"
+                    value={formData.staffID}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 12345"
+                    required
+                  />
+                  {formErrors.staffID && <p className="text-red-500 text-sm">{formErrors.staffID}</p>}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -217,6 +252,7 @@ export default function RegisterPage() {
                   placeholder="johndoe"
                   required
                 />
+                {formErrors.username && <p className="text-red-500 text-sm">{formErrors.username}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email *</Label>
@@ -229,6 +265,7 @@ export default function RegisterPage() {
                   placeholder="john.doe@example.com"
                   required
                 />
+                {formErrors.email && <p className="text-red-500 text-sm">{formErrors.email}</p>}
               </div>
             </div>
 
@@ -244,6 +281,7 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   required
                 />
+                {formErrors.password && <p className="text-red-500 text-sm">{formErrors.password}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password *</Label>
@@ -256,6 +294,7 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   required
                 />
+                {formErrors.confirmPassword && <p className="text-red-500 text-sm">{formErrors.confirmPassword}</p>}
               </div>
             </div>
 

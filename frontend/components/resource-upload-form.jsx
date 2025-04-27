@@ -74,59 +74,60 @@ const ResourceUploadForm = ({ user }) => {
   }, [])
 
   // Fetch supervisors when department changes
-  useEffect(() => {
-    const fetchSupervisors = async () => {
-      if (!formData.department) return
+// Fetch supervisors when department changes
+useEffect(() => {
+  const fetchSupervisors = async () => {
+    if (!formData.department) {
+      setSupervisors([]);
+      return;
+    }
 
-      setLoadingSupervisors(true)
-      setSupervisors([]) // Clear previous supervisors
+    setLoadingSupervisors(true);
+    setSupervisors([]); // Clear previous supervisors
 
-      try {
-        // Fetch supervisors from the API
-        const response = await fetch(`http://localhost:5000/api/users/role/supervisor`, {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/users/supervisors/available?department=${encodeURIComponent(formData.department)}`,
+        {
           credentials: "include",
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-
-          if (data.users && Array.isArray(data.users)) {
-            // Filter supervisors by department if needed
-            const filteredSupervisors = formData.department
-              ? data.users.filter((user) => user.department === formData.department)
-              : data.users
-
-            setSupervisors(
-              filteredSupervisors.map((user) => ({
-                id: user.id,
-                fullName: user.fullName,
-              })),
-            )
-
-            if (filteredSupervisors.length === 0) {
-              toast.info(`No supervisors found for ${formData.department}.`)
-            }
-          } else {
-            toast.error("Invalid supervisor data format received from server.")
-            setSupervisors([])
-          }
-        } else {
-          toast.error("Failed to fetch supervisors. Please try again.")
-          setSupervisors([])
         }
-      } catch (error) {
-        console.error("Error fetching supervisors:", error)
-        toast.error("Error loading supervisors. Please try again later.")
-        setSupervisors([])
-      } finally {
-        setLoadingSupervisors(false)
-      }
-    }
+      );
 
-    if (formData.department) {
-      fetchSupervisors()
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // The backend returns { success: true, supervisors: [...] }
+      if (data.success && data.supervisors) {
+        setSupervisors(
+          data.supervisors.map((supervisor) => ({
+            id: supervisor.id,
+            fullName: supervisor.fullName,
+            department: supervisor.department,
+          }))
+        );
+
+        if (data.supervisors.length === 0) {
+          toast.info(`No supervisors found for ${formData.department}.`);
+        }
+      } else {
+        throw new Error("Invalid data format received from server");
+      }
+    } catch (error) {
+      console.error("Error fetching supervisors:", error);
+      toast.error("Error loading supervisors. Please try again later.");
+      setSupervisors([]);
+    } finally {
+      setLoadingSupervisors(false);
     }
-  }, [formData.department])
+  };
+
+  if (formData.department) {
+    fetchSupervisors();
+  }
+}, [formData.department]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -283,77 +284,115 @@ const ResourceUploadForm = ({ user }) => {
             </p>
           </div>
 
-          {/* Department and Supervisor Section */}
-          <div className="space-y-2">
-            <h3 className="text-lg font-medium">Department & Supervision</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="department">
-                  Department <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.department}
-                  onValueChange={(value) => handleSelectChange("department", value)}
-                  required
+{/* Department and Supervisor Section */}
+<div className="space-y-2">
+  <h3 className="text-lg font-medium">Department & Supervision</h3>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {/* Department Select */}
+    <div className="space-y-2">
+      <Label htmlFor="department">
+        Department <span className="text-red-500">*</span>
+      </Label>
+      <Select
+        value={formData.department}
+        onValueChange={(value) => {
+          handleSelectChange("department", value);
+          // Clear supervisor when department changes
+          handleSelectChange("supervisorId", "");
+        }}
+        required
+        disabled={loadingSupervisors}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select department" />
+        </SelectTrigger>
+        <SelectContent>
+          {departments.map((department) => (
+            <SelectItem key={department} value={department}>
+              {department}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <p className="text-xs text-muted-foreground">
+        Select the department this resource belongs to
+      </p>
+    </div>
+
+    {/* Supervisor Select - Only shown for final projects by students */}
+    {formData.type === "final-project" && user.role === "student" && (
+      <div className="space-y-2">
+        <Label htmlFor="supervisorId">
+          Supervisor <span className="text-red-500">*</span>
+          {loadingSupervisors && (
+            <Loader2 className="ml-2 h-4 w-4 inline-block animate-spin" />
+          )}
+        </Label>
+        <Select
+          value={formData.supervisorId}
+          onValueChange={(value) => handleSelectChange("supervisorId", value)}
+          required
+          disabled={loadingSupervisors || !formData.department || supervisors.length === 0}
+        >
+          <SelectTrigger className="w-full">
+            {loadingSupervisors ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading supervisors...
+              </span>
+            ) : (
+              <SelectValue 
+                placeholder={
+                  !formData.department 
+                    ? "Select department first" 
+                    : supervisors.length === 0 
+                      ? "No supervisors available" 
+                      : "Select supervisor"
+                } 
+              />
+            )}
+          </SelectTrigger>
+          <SelectContent>
+            {supervisors.length > 0 ? (
+              supervisors.map((supervisor) => (
+                <SelectItem 
+                  key={supervisor.id} 
+                  value={supervisor.id.toString()}
+                  className="flex items-center gap-2"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((department) => (
-                      <SelectItem key={department} value={department}>
-                        {department}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">Select the department this resource belongs to</p>
-              </div>
-
-              {formData.type === "final-project" && user.role === "student" && (
-                <div className="space-y-2">
-                  <Label htmlFor="supervisorId">
-                    Supervisor <span className="text-red-500">*</span>
-                    {loadingSupervisors && <span className="ml-2 inline-block animate-spin">⟳</span>}
-                  </Label>
-                  <Select
-                    value={formData.supervisorId}
-                    onValueChange={(value) => handleSelectChange("supervisorId", value)}
-                    required
-                    disabled={loadingSupervisors}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={loadingSupervisors ? "Loading supervisors..." : "Select supervisor"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {supervisors.length > 0 ? (
-                        supervisors.map((supervisor) => (
-                          <SelectItem key={supervisor.id} value={supervisor.id.toString()}>
-                            {supervisor.fullName}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="no-supervisors" disabled>
-                          No supervisors available
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">Select your project supervisor</p>
-
-                  {supervisors.length === 0 && !loadingSupervisors && formData.department && (
-                    <Alert className="mt-2">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        No supervisors found for {formData.department}. Please contact administration or select a
-                        different department.
-                      </AlertDescription>
-                    </Alert>
+                  <span className="font-medium">{supervisor.fullName}</span>
+                  {supervisor.department && (
+                    <span className="text-muted-foreground text-xs">
+                      ({supervisor.department})
+                    </span>
                   )}
-                </div>
-              )}
-            </div>
-          </div>
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="no-supervisors" disabled>
+                No supervisors available in {formData.department}
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          Select your project supervisor
+        </p>
+
+        {/* Show warning if no supervisors found */}
+        {supervisors.length === 0 && !loadingSupervisors && formData.department && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              No active supervisors found in {formData.department} department.
+              Please contact administration or select a different department.
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+    )}
+  </div>
+</div>
 
           {/* Additional Details Section */}
           <div className="space-y-2">

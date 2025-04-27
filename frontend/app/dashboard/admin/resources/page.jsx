@@ -289,11 +289,9 @@ export default function ResourcesPage() {
                           <Eye className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Link href={`/resources/${info.row.original.id}/download`} passHref>
+                      <Link href={`/resources/${info.row.original.id}/download`} passHref target="_blank" rel="noopener noreferrer">
                         <Button variant="outline" size="sm" asChild>
-                          <a target="_blank" rel="noopener noreferrer">
                             <Download className="h-4 w-4" />
-                          </a>
                         </Button>
                       </Link>
                       <Button
