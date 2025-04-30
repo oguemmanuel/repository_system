@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { BookOpen, Loader2 } from "lucide-react"
 
 export default function LogoutPage() {
   const router = useRouter()
@@ -38,9 +39,17 @@ export default function LogoutPage() {
   }, [router])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00447c]"></div>
-      <p className="mt-4 text-lg">Logging out...</p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white">
+      <div className="mb-8 flex items-center gap-2">
+        <BookOpen className="h-10 w-10 text-blue-800" />
+        <span className="text-3xl font-bold text-blue-800">CUG Repository</span>
+      </div>
+      
+      <div className="bg-white p-8 rounded-lg shadow-md border border-blue-100 flex flex-col items-center">
+        <Loader2 className="h-12 w-12 text-blue-700 animate-spin" />
+        <p className="mt-4 text-lg font-medium text-gray-800">Logging out...</p>
+        <p className="text-sm text-gray-500 mt-2">You will be redirected to the login page shortly.</p>
+      </div>
     </div>
   )
 }
