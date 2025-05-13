@@ -3,6 +3,135 @@ const router = express.Router()
 const db = require("../config/database")
 const { isAuthenticated } = require("../middleware/auth")
 
+// Create a new comment
+router.post("/", isAuthenticated, async (req, res) => {
+  try {
+    const { resourceId, content } = req.body
+    const userId = req.session.user.id
+
+    if (!resourceId || !content) {
+      return res.status(400).json({
+        success: false,
+        message: "Resource ID and comment content are required",
+      })
+    }
+
+    // Check if resource exists
+    const [resources] = await db.query("SELECT * FROM resources WHERE id = ?", [resourceId])
+
+    if (resources.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Resource not found",
+      })
+    }
+
+    // Insert the comment
+    const [result] = await db.query(
+      "INSERT INTO comments (resourceId, userId, content, createdAt, updatedAt) VALUES (?, ?, ?, NOW(), NOW())",
+      [resourceId, userId, content]
+    )
+
+    // Get the created comment with user details
+    const [comments] = await db.query(
+      `SELECT c.*, u.fullName, u.role 
+       FROM comments c 
+       JOIN users u ON c.userId = u.id 
+       WHERE c.id = ?`,
+      [result.insertId]
+    )
+
+    res.status(201).json({
+      success: true,
+      message: "Comment created successfully",
+      comment: comments[0],
+    })
+  } catch (error) {
+    console.error("Error creating comment:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error creating comment",
+      error: error.message,
+    })
+  }
+})
+
+// Get comments by resource ID
+router.get("/resource/:resourceId", async (req, res) => {
+  try {
+    const resourceId = req.params.resourceId
+
+    // Verify resource exists
+    const [resources] = await db.query("SELECT * FROM resources WHERE id = ?", [resourceId])
+
+    if (resources.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Resource not found",
+      })
+    }
+
+    // Get comments for the resource with user details
+    const [comments] = await db.query(
+      `SELECT c.*, u.fullName, u.role 
+       FROM comments c 
+       JOIN users u ON c.userId = u.id 
+       WHERE c.resourceId = ? 
+       ORDER BY c.createdAt DESC`,
+      [resourceId]
+    )
+
+    res.status(200).json({
+      success: true,
+      message: "Comments retrieved successfully",
+      comments: comments,
+    })
+  } catch (error) {
+    console.error("Error fetching comments:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error fetching comments",
+      error: error.message,
+    })
+  }
+})
+
+// Get a single comment by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const commentId = req.params.id
+
+    // Get comment with user details
+    const [comments] = await db.query(
+      `SELECT c.*, u.fullName, u.role 
+       FROM comments c 
+       JOIN users u ON c.userId = u.id 
+       WHERE c.id = ?`,
+      [commentId]
+    )
+
+    if (comments.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Comment not found",
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Comment retrieved successfully",
+      comment: comments[0],
+    })
+  } catch (error) {
+    console.error("Error fetching comment:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error fetching comment",
+      error: error.message,
+    })
+  }
+})
+
 // Update a comment
 router.put("/:id", isAuthenticated, async (req, res) => {
   try {

@@ -7,8 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { User, Mail, Phone, Building, Save, Loader2, Key } from "lucide-react"
-import DashboardNav from "@/components/dashboard-nav"
+import { User, Mail, Phone, Building, Save, Loader2, Key, Shield } from "lucide-react"
 import DashboardHeader from "@/components/dashboard-header"
 
 export default function ProfilePage() {
@@ -165,100 +164,109 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-indigo-50">
         <DashboardHeader />
         <div className="container flex-1 items-center justify-center flex">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 via-indigo-50 to-blue-50">
       <DashboardHeader />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
-          <DashboardNav isAdmin={true} />
-        </aside>
+      <div className="container max-w-4xl mx-auto px-4 py-8">
         <main className="flex w-full flex-col overflow-hidden">
-          <div className="flex items-center justify-between py-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
-              <p className="text-muted-foreground">Manage your account settings and preferences.</p>
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="bg-blue-600 text-white p-4 rounded-full mb-4">
+              <User size={32} />
             </div>
+            <h1 className="text-3xl font-bold tracking-tight text-blue-900">My Profile</h1>
+            <p className="text-blue-700 max-w-md text-center">
+              Manage your account settings and preferences.
+            </p>
           </div>
 
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>Update your personal information and contact details.</CardDescription>
+          <div className="space-y-6 mt-6">
+            <Card className="border-indigo-200 shadow-md hover:shadow-lg transition-shadow duration-300">
+              <CardHeader className="bg-gradient-to-r from-blue-100 to-indigo-100 border-b border-indigo-200">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-blue-800">Profile Information</CardTitle>
+                </div>
+                <CardDescription className="text-blue-700">
+                  Update your personal information and contact details.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <form onSubmit={handleUpdateProfile} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="space-y-6 pt-6 bg-white bg-opacity-80">
+                <form onSubmit={handleUpdateProfile} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="fullName">Full Name</Label>
+                      <Label htmlFor="fullName" className="text-blue-800 font-medium">Full Name</Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
                         <Input
                           id="fullName"
                           name="fullName"
                           value={profileData.fullName}
                           onChange={handleProfileInputChange}
-                          className="pl-10"
+                          className="pl-10 border-blue-300 focus:border-blue-500 focus:ring-blue-500"
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email" className="text-blue-800 font-medium">Email</Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
                         <Input
                           id="email"
                           name="email"
                           value={profileData.email}
                           onChange={handleProfileInputChange}
-                          className="pl-10"
+                          className="pl-10 bg-blue-50 border-blue-300"
                           disabled
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-blue-600">
                         Email cannot be changed. Contact system administrator for assistance.
                       </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="phoneNumber">Phone Number</Label>
+                      <Label htmlFor="phoneNumber" className="text-blue-800 font-medium">Phone Number</Label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
                         <Input
                           id="phoneNumber"
                           name="phoneNumber"
                           value={profileData.phoneNumber}
                           onChange={handleProfileInputChange}
-                          className="pl-10"
+                          className="pl-10 border-blue-300 focus:border-blue-500 focus:ring-blue-500"
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="department">Department</Label>
+                      <Label htmlFor="department" className="text-blue-800 font-medium">Department</Label>
                       <div className="relative">
-                        <Building className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Building className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
                         <Input
                           id="department"
                           name="department"
                           value={profileData.department}
                           onChange={handleProfileInputChange}
-                          className="pl-10"
+                          className="pl-10 border-blue-300 focus:border-blue-500 focus:ring-blue-500"
                         />
                       </div>
                     </div>
                   </div>
-                  <div className="flex justify-end">
-                    <Button type="submit" disabled={saving}>
+                  <div className="flex justify-center pt-2">
+                    <Button 
+                      type="submit" 
+                      disabled={saving}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+                    >
                       {saving ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -276,69 +284,81 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-                <CardDescription>Update your password to keep your account secure.</CardDescription>
+            <Card className="border-indigo-200 shadow-md hover:shadow-lg transition-shadow duration-300">
+              <CardHeader className="bg-gradient-to-r from-blue-100 to-indigo-100 border-b border-indigo-200">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-blue-800">Change Password</CardTitle>
+                </div>
+                <CardDescription className="text-blue-700">
+                  Update your password to keep your account secure.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <form onSubmit={handleChangePassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Current Password</Label>
+              <CardContent className="space-y-6 pt-6 bg-white bg-opacity-80">
+                <form onSubmit={handleChangePassword} className="space-y-6">
+                  <div className="space-y-4">
+                    <Label htmlFor="currentPassword" className="text-blue-800 font-medium">Current Password</Label>
                     <div className="relative">
-                      <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
                       <Input
                         id="currentPassword"
                         name="currentPassword"
                         type="password"
                         value={passwordData.currentPassword}
                         onChange={handlePasswordInputChange}
-                        className="pl-10"
+                        className="pl-10 border-blue-300 focus:border-blue-500 focus:ring-blue-500"
                         required
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="newPassword">New Password</Label>
+                      <Label htmlFor="newPassword" className="text-blue-800 font-medium">New Password</Label>
                       <div className="relative">
-                        <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
                         <Input
                           id="newPassword"
                           name="newPassword"
                           type="password"
                           value={passwordData.newPassword}
                           onChange={handlePasswordInputChange}
-                          className="pl-10"
+                          className="pl-10 border-blue-300 focus:border-blue-500 focus:ring-blue-500"
                           required
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <Label htmlFor="confirmPassword" className="text-blue-800 font-medium">Confirm New Password</Label>
                       <div className="relative">
-                        <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
                         <Input
                           id="confirmPassword"
                           name="confirmPassword"
                           type="password"
                           value={passwordData.confirmPassword}
                           onChange={handlePasswordInputChange}
-                          className="pl-10"
+                          className="pl-10 border-blue-300 focus:border-blue-500 focus:ring-blue-500"
                           required
                         />
                       </div>
                     </div>
                   </div>
-                  <div className="flex justify-end">
-                    <Button type="submit" disabled={changingPassword}>
+                  <div className="flex justify-center pt-2">
+                    <Button 
+                      type="submit" 
+                      disabled={changingPassword}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+                    >
                       {changingPassword ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Changing Password...
                         </>
                       ) : (
-                        "Change Password"
+                        <>
+                          <Key className="mr-2 h-4 w-4" />
+                          Change Password
+                        </>
                       )}
                     </Button>
                   </div>

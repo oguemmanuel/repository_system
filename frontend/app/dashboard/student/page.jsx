@@ -20,11 +20,12 @@ import {
   Eye,
   Download,
   XCircle,
-  Loader2
+  Loader2,
 } from "lucide-react"
 import DashboardNav from "@/components/dashboard-nav"
 import DashboardHeader from "@/components/dashboard-header"
 import DataTable from "@/components/data-table"
+import AISummaryButton from "@/components/ai-summary-button"
 
 export default function StudentDashboard() {
   const router = useRouter()
@@ -208,13 +209,21 @@ export default function StudentDashboard() {
               <p className="text-blue-600">Access and manage your academic resources.</p>
             </div>
             <div className="flex items-center gap-2">
-              <Link href="/profile">
-                <Button variant="outline" size="icon" className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800">
+              <Link href="/dashboard/student/profile">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800 cursor-pointer"
+                >
                   <User className="h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/logout">
-                <Button variant="outline" size="icon" className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800 cursor-pointer"
+                >
                   <LogOut className="h-4 w-4" />
                 </Button>
               </Link>
@@ -270,7 +279,7 @@ export default function StudentDashboard() {
                 />
               </div>
               <Link href="/upload">
-                <Button className="bg-blue-600 hover:bg-blue-700 gap-1">
+                <Button className="bg-blue-600 hover:bg-blue-700 gap-1 text-white cursor-pointer">
                   <Upload className="h-4 w-4" />
                   Upload Resource
                 </Button>
@@ -279,8 +288,18 @@ export default function StudentDashboard() {
           </div>
           <Tabs defaultValue="my-resources" className="space-y-4">
             <TabsList className="bg-blue-100">
-              <TabsTrigger value="my-resources" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">My Resources</TabsTrigger>
-              <TabsTrigger value="approved" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">Approved Resources</TabsTrigger>
+              <TabsTrigger
+                value="my-resources"
+                className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              >
+                My Resources
+              </TabsTrigger>
+              <TabsTrigger
+                value="approved"
+                className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+              >
+                Approved Resources
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="my-resources" className="space-y-4">
               {filteredMyResources.length > 0 ? (
@@ -328,15 +347,20 @@ export default function StudentDashboard() {
                         cell: (info) => (
                           <div className="flex gap-2">
                             <Link href={`/resources/${info.row.original.id}`}>
-                              <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                              >
                                 <Eye className="h-4 w-4 mr-1" />
                                 View
                               </Button>
                             </Link>
+                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
                             {info.row.original.status === "approved" && (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => handleDownload(info.row.original.id)}
                                 className="border-slate-300 text-slate-700 hover:bg-slate-50"
                               >
@@ -397,14 +421,19 @@ export default function StudentDashboard() {
                         cell: (info) => (
                           <div className="flex gap-2">
                             <Link href={`/resources/${info.row.original.id}`}>
-                              <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                              >
                                 <Eye className="h-4 w-4 mr-1" />
                                 View
                               </Button>
                             </Link>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleDownload(info.row.original.id)}
                               className="border-slate-300 text-slate-700 hover:bg-slate-50"
                             >

@@ -6,10 +6,18 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { Search, BookOpen, Download, Eye } from "lucide-react"
-import DashboardNav from "@/components/dashboard-nav"
+import { Search, BookOpen, Download, Eye, FileText, Filter } from "lucide-react"
 import DashboardHeader from "@/components/dashboard-header"
 import DataTable from "@/components/data-table"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu"
 
 export default function ApprovedResourcesPage() {
   const router = useRouter()
@@ -102,102 +110,204 @@ export default function ApprovedResourcesPage() {
     }
   }
 
+  const getResourceTypeIcon = (type) => {
+    switch (type) {
+      case "past-exam":
+        return <FileText className="h-4 w-4 text-blue-500" />
+      case "mini-project":
+        return <FileText className="h-4 w-4 text-green-500" />
+      case "final-project":
+        return <FileText className="h-4 w-4 text-purple-500" />
+      case "thesis":
+        return <BookOpen className="h-4 w-4 text-amber-500" />
+      default:
+        return <FileText className="h-4 w-4 text-gray-500" />
+    }
+  }
+
+  const getResourceTypeBadgeStyle = (type) => {
+    switch (type) {
+      case "past-exam":
+        return "bg-blue-100 text-blue-800"
+      case "mini-project":
+        return "bg-green-100 text-green-800"
+      case "final-project":
+        return "bg-purple-100 text-purple-800"
+      case "thesis":
+        return "bg-amber-100 text-amber-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen flex-col bg-gray-50">
         <DashboardHeader />
         <div className="container flex-1 items-center justify-center flex">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            <p className="text-muted-foreground">Loading resources...</p>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gray-50">
       <DashboardHeader />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
-          <DashboardNav isSupervisor={true} />
-        </aside>
-        <main className="flex w-full flex-col overflow-hidden">
-          <div className="flex items-center justify-between py-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Approved Resources</h1>
-              <p className="text-muted-foreground">View and manage resources you have approved.</p>
+      <div className="container py-8 flex-1">
+        <Card className="bg-white shadow-sm border-0">
+          <CardHeader className="bg-white pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-3xl font-bold text-gray-900">
+                  Approved Resources
+                </CardTitle>
+                <p className="text-muted-foreground mt-1">
+                  View and manage resources you have approved
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-1">
+                      <Filter className="h-4 w-4" />
+                      <span>Filter</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem>Past Exams</DropdownMenuItem>
+                      <DropdownMenuItem>Mini Projects</DropdownMenuItem>
+                      <DropdownMenuItem>Final Year Projects</DropdownMenuItem>
+                      <DropdownMenuItem>Theses</DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          </div>
+          </CardHeader>
+          
+          <CardContent className="pt-6">
+            <div className="mb-6">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by title, type, department or student..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-200"
+                />
+              </div>
+            </div>
 
-          <div className="my-6">
-            <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search approved resources..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-md"
-              />
-            </div>
-          </div>
-
-          {filteredApprovedResources.length > 0 ? (
-            <DataTable
-              data={filteredApprovedResources}
-              columns={[
-                { header: "Title", accessorKey: "title" },
-                {
-                  header: "Type",
-                  accessorKey: "type",
-                  cell: (info) => getResourceTypeName(info.getValue()),
-                },
-                { header: "Department", accessorKey: "department" },
-                {
-                  header: "Student",
-                  accessorKey: "studentName",
-                  cell: (info) => info.getValue() || "N/A",
-                },
-                {
-                  header: "Approval Date",
-                  accessorKey: "updatedAt",
-                  cell: (info) => new Date(info.getValue()).toLocaleDateString(),
-                },
-                {
-                  header: "Views",
-                  accessorKey: "views",
-                  cell: (info) => info.getValue() || 0,
-                },
-                {
-                  header: "Downloads",
-                  accessorKey: "downloads",
-                  cell: (info) => info.getValue() || 0,
-                },
-                {
-                  header: "Actions",
-                  cell: (info) => (
-                    <div className="flex gap-2">
-                      <Link href={`/resources/${info.row.original.id}`}>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                      </Link>
-                      <Button variant="outline" size="sm" onClick={() => handleDownload(info.row.original.id)}>
-                        <Download className="h-4 w-4 mr-1" />
-                        Download
-                      </Button>
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No approved resources</h3>
-              <p className="text-muted-foreground mt-2">You haven't approved any resources yet.</p>
-            </div>
-          )}
-        </main>
+            {filteredApprovedResources.length > 0 ? (
+              <div className="rounded-lg border border-gray-100 overflow-hidden">
+                <DataTable
+                  data={filteredApprovedResources}
+                  columns={[
+                    { 
+                      header: "Title", 
+                      accessorKey: "title",
+                      cell: (info) => (
+                        <div className="font-medium text-gray-900 hover:text-primary transition-colors">
+                          {info.getValue()}
+                        </div>
+                      )
+                    },
+                    {
+                      header: "Type",
+                      accessorKey: "type",
+                      cell: (info) => (
+                        <div className="flex items-center gap-2">
+                          {getResourceTypeIcon(info.getValue())}
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getResourceTypeBadgeStyle(info.getValue())}`}>
+                            {getResourceTypeName(info.getValue())}
+                          </span>
+                        </div>
+                      ),
+                    },
+                    { 
+                      header: "Department", 
+                      accessorKey: "department",
+                      cell: (info) => (
+                        <span className="text-gray-700">{info.getValue()}</span>
+                      )
+                    },
+                    {
+                      header: "Student",
+                      accessorKey: "studentName",
+                      cell: (info) => (
+                        <span className="text-gray-700">{info.getValue() || "N/A"}</span>
+                      )
+                    },
+                    {
+                      header: "Approval Date",
+                      accessorKey: "updatedAt",
+                      cell: (info) => (
+                        <span className="text-gray-600 text-sm">
+                          {new Date(info.getValue()).toLocaleDateString()}
+                        </span>
+                      )
+                    },
+                    {
+                      header: "Views",
+                      accessorKey: "views",
+                      cell: (info) => (
+                        <div className="flex items-center gap-1.5">
+                          <Eye className="h-3.5 w-3.5 text-gray-400" />
+                          <span className="text-gray-600">{info.getValue() || 0}</span>
+                        </div>
+                      )
+                    },
+                    {
+                      header: "Downloads",
+                      accessorKey: "downloads",
+                      cell: (info) => (
+                        <div className="flex items-center gap-1.5">
+                          <Download className="h-3.5 w-3.5 text-gray-400" />
+                          <span className="text-gray-600">{info.getValue() || 0}</span>
+                        </div>
+                      )
+                    },
+                    {
+                      header: "Actions",
+                      cell: (info) => (
+                        <div className="flex gap-2">
+                          <Link href={`/resources/${info.row.original.id}`}>
+                            <Button variant="outline" size="sm" className="bg-gray-50 hover:bg-gray-100 text-gray-700">
+                              <Eye className="h-3.5 w-3.5 mr-1" />
+                              View
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleDownload(info.row.original.id)}
+                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                          >
+                            <Download className="h-3.5 w-3.5 mr-1" />
+                            Download
+                          </Button>
+                        </div>
+                      ),
+                    },
+                  ]}
+                />
+              </div>
+            ) : (
+              <Card className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 border-dashed border-2 border-gray-200">
+                <BookOpen className="h-16 w-16 text-gray-300 mb-4" />
+                <h3 className="text-lg font-medium text-gray-800">No approved resources</h3>
+                <p className="text-muted-foreground mt-2 max-w-md">
+                  You haven't approved any resources yet. Resources that you approve will appear here.
+                </p>
+              </Card>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

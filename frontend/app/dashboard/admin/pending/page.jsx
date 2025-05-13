@@ -9,10 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
-import { Search, FileText, ThumbsUp, ThumbsDown, Eye } from "lucide-react"
-import DashboardNav from "@/components/dashboard-nav"
+import { Search, FileText, ThumbsUp, ThumbsDown, Eye, Clock } from "lucide-react"
 import DashboardHeader from "@/components/dashboard-header"
 import DataTable from "@/components/data-table"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 export default function PendingApprovalsPage() {
   const router = useRouter()
@@ -169,146 +170,188 @@ export default function PendingApprovalsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen flex-col bg-gradient-to-b from-amber-50 to-slate-100">
         <DashboardHeader />
-        <div className="container flex-1 items-center justify-center flex">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="container max-w-6xl mx-auto flex-1 items-center justify-center flex">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-amber-50 to-slate-100">
       <DashboardHeader />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
-          <DashboardNav isAdmin={true} />
-        </aside>
-        <main className="flex w-full flex-col overflow-hidden">
-          <div className="flex items-center justify-between py-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Pending Approvals</h1>
-              <p className="text-muted-foreground">Review and approve pending resource submissions.</p>
+      <div className="container max-w-6xl mx-auto py-8 px-4">
+        <Card className="border shadow-md bg-white">
+          <CardHeader className="border-b bg-slate-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-3xl font-bold tracking-tight text-slate-800">Pending Approvals</CardTitle>
+                <CardDescription className="text-slate-600">Review and approve pending resource submissions.</CardDescription>
+              </div>
+              <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 flex items-center gap-1 px-3 py-1.5">
+                <Clock className="h-4 w-4" />
+                <span>{filteredPendingResources.length} Pending</span>
+              </Badge>
             </div>
-          </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 bg-white p-4 rounded-lg shadow-sm border max-w-md">
+                <Search className="h-5 w-5 text-slate-400" />
+                <Input
+                  placeholder="Search pending resources..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
 
-          <div className="my-6">
-            <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search pending resources..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-md"
-              />
-            </div>
-          </div>
-
-          {filteredPendingResources.length > 0 ? (
-            <DataTable
-              data={filteredPendingResources}
-              columns={[
-                { header: "Title", accessorKey: "title" },
-                {
-                  header: "Type",
-                  accessorKey: "type",
-                  cell: (info) => getResourceTypeName(info.getValue()),
-                },
-                { header: "Department", accessorKey: "department" },
-                {
-                  header: "Uploaded By",
-                  accessorKey: "uploadedByName",
-                  cell: (info) => info.getValue() || "Unknown",
-                },
-                {
-                  header: "Student",
-                  accessorKey: "studentName",
-                  cell: (info) => info.getValue() || "N/A",
-                },
-                {
-                  header: "Supervisor",
-                  accessorKey: "supervisorName",
-                  cell: (info) => info.getValue() || "N/A",
-                },
-                {
-                  header: "Submission Date",
-                  accessorKey: "createdAt",
-                  cell: (info) => new Date(info.getValue()).toLocaleDateString(),
-                },
-                {
-                  header: "Actions",
-                  cell: (info) => (
-                    <div className="flex gap-2">
-                      <Link href={`/resources/${info.row.original.id}`}>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        disabled={processingAction}
-                        onClick={() => handleApproveResource(info.row.original.id)}
-                      >
-                        <ThumbsUp className="h-4 w-4 mr-1" />
-                        Approve
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        disabled={processingAction}
-                        onClick={() => {
-                          setSelectedResource(info.row.original)
-                          setIsRejectDialogOpen(true)
-                        }}
-                      >
-                        <ThumbsDown className="h-4 w-4 mr-1" />
-                        Reject
-                      </Button>
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No pending resources</h3>
-              <p className="text-muted-foreground mt-2">
-                There are no resources waiting for your approval at this time.
-              </p>
-            </div>
-          )}
-
-          {/* Rejection Dialog */}
-          <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Reject Resource</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleRejectResource} className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="rejectionReason">Reason for Rejection</Label>
-                  <Textarea
-                    id="rejectionReason"
-                    placeholder="Please provide a reason for rejecting this resource"
-                    value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    required
-                    rows={4}
+              <div className="bg-white rounded-lg shadow-sm border">
+                {filteredPendingResources.length > 0 ? (
+                  <DataTable
+                    data={filteredPendingResources}
+                    columns={[
+                      { 
+                        header: "Title", 
+                        accessorKey: "title",
+                        cell: (info) => <span className="font-medium text-slate-900">{info.getValue()}</span>
+                      },
+                      {
+                        header: "Type",
+                        accessorKey: "type",
+                        cell: (info) => (
+                          <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-medium">
+                            {getResourceTypeName(info.getValue())}
+                          </span>
+                        ),
+                      },
+                      { 
+                        header: "Department", 
+                        accessorKey: "department",
+                        cell: (info) => <span className="text-slate-700">{info.getValue()}</span>
+                      },
+                      {
+                        header: "Uploaded By",
+                        accessorKey: "uploadedByName",
+                        cell: (info) => <span className="text-slate-700">{info.getValue() || "Unknown"}</span>,
+                      },
+                      {
+                        header: "Student",
+                        accessorKey: "studentName",
+                        cell: (info) => <span className="text-slate-700">{info.getValue() || "N/A"}</span>,
+                      },
+                      {
+                        header: "Supervisor",
+                        accessorKey: "supervisorName",
+                        cell: (info) => <span className="text-slate-700">{info.getValue() || "N/A"}</span>,
+                      },
+                      {
+                        header: "Submission Date",
+                        accessorKey: "createdAt",
+                        cell: (info) => (
+                          <span className="text-slate-700">
+                            {new Date(info.getValue()).toLocaleDateString()}
+                          </span>
+                        ),
+                      },
+                      {
+                        header: "Actions",
+                        cell: (info) => (
+                          <div className="flex gap-2">
+                            <Link href={`/resources/${info.row.original.id}`}>
+                              <Button variant="outline" size="sm" className="border-slate-200 hover:bg-slate-50 hover:text-blue-700">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              disabled={processingAction}
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => handleApproveResource(info.row.original.id)}
+                            >
+                              <ThumbsUp className="h-4 w-4 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              disabled={processingAction}
+                              className="bg-red-600 hover:bg-red-700"
+                              onClick={() => {
+                                setSelectedResource(info.row.original)
+                                setIsRejectDialogOpen(true)
+                              }}
+                            >
+                              <ThumbsDown className="h-4 w-4 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
+                        ),
+                      },
+                    ]}
                   />
-                </div>
-                <DialogFooter>
-                  <Button type="submit" variant="destructive" disabled={processingAction}>
-                    Reject Resource
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </main>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="rounded-full bg-slate-100 p-4 mb-4">
+                      <FileText className="h-12 w-12 text-slate-500" />
+                    </div>
+                    <h3 className="text-lg font-medium text-slate-800">No pending resources</h3>
+                    <p className="text-slate-500 mt-2 max-w-md">
+                      There are no resources waiting for your approval at this time.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Rejection Dialog */}
+      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-slate-800">Reject Resource</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleRejectResource} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejectionReason" className="text-slate-700">Reason for Rejection</Label>
+              <Textarea
+                id="rejectionReason"
+                placeholder="Please provide a reason for rejecting this resource"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                required
+                rows={4}
+                className="border-slate-300 focus:border-amber-500 focus:ring-amber-500"
+              />
+              <p className="text-xs text-slate-500">This reason will be shared with the uploader.</p>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                onClick={() => setIsRejectDialogOpen(false)}
+                disabled={processingAction}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                variant="destructive" 
+                disabled={processingAction}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Reject Resource
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

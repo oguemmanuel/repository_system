@@ -9,8 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { toast } from "sonner"
-import { Save, Loader2 } from "lucide-react"
-import DashboardNav from "@/components/dashboard-nav"
+import { Save, Loader2, Settings as SettingsIcon } from "lucide-react"
 import DashboardHeader from "@/components/dashboard-header"
 
 export default function SettingsPage() {
@@ -91,84 +90,82 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-white">
         <DashboardHeader />
         <div className="container flex-1 items-center justify-center flex">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-white">
       <DashboardHeader />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
-          <DashboardNav isAdmin={true} />
-        </aside>
+      <div className="container max-w-4xl mx-auto py-8 px-4 flex-1">
         <main className="flex w-full flex-col overflow-hidden">
-          <div className="flex items-center justify-between py-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">System Settings</h1>
-              <p className="text-muted-foreground">Configure system-wide settings and preferences.</p>
+          <div className="flex flex-col items-center justify-center py-6 text-center mb-6">
+            <div className="bg-blue-500 rounded-full p-3 mb-4">
+              <SettingsIcon className="h-8 w-8 text-white" />
             </div>
+            <h1 className="text-3xl font-bold tracking-tight text-blue-800">System Settings</h1>
+            <p className="text-blue-600 max-w-lg mx-auto">
+              Configure system-wide settings and preferences for the CUG Repository platform.
+            </p>
           </div>
 
-          <Tabs defaultValue="general" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="uploads">Uploads</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-              <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-            </TabsList>
+          <Card className="border-none shadow-lg rounded-xl overflow-hidden">
+            <Tabs defaultValue="general" className="w-full">
+              <TabsList className="w-full grid grid-cols-4 bg-blue-50 rounded-none">
+                <TabsTrigger value="general" className="data-[state=active]:bg-white rounded-t-lg">General</TabsTrigger>
+                <TabsTrigger value="uploads" className="data-[state=active]:bg-white rounded-t-lg">Uploads</TabsTrigger>
+                <TabsTrigger value="notifications" className="data-[state=active]:bg-white rounded-t-lg">Notifications</TabsTrigger>
+                <TabsTrigger value="maintenance" className="data-[state=active]:bg-white rounded-t-lg">Maintenance</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="general" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>General Settings</CardTitle>
-                  <CardDescription>Configure general system settings and appearance.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <TabsContent value="general" className="p-6 bg-white">
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="siteTitle">Site Title</Label>
-                    <Input id="siteTitle" name="siteTitle" value={settings.siteTitle} onChange={handleInputChange} />
+                    <Label htmlFor="siteTitle" className="text-blue-800">Site Title</Label>
+                    <Input 
+                      id="siteTitle" 
+                      name="siteTitle" 
+                      value={settings.siteTitle} 
+                      onChange={handleInputChange}
+                      className="border-blue-200 focus:border-blue-500 focus:ring-blue-500" 
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="siteDescription">Site Description</Label>
+                    <Label htmlFor="siteDescription" className="text-blue-800">Site Description</Label>
                     <Input
                       id="siteDescription"
                       name="siteDescription"
                       value={settings.siteDescription}
                       onChange={handleInputChange}
+                      className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
                     <div className="space-y-0.5">
-                      <Label htmlFor="allowRegistration">Allow Public Registration</Label>
-                      <p className="text-sm text-muted-foreground">Allow users to register accounts on the site.</p>
+                      <Label htmlFor="allowRegistration" className="text-blue-800">Allow Public Registration</Label>
+                      <p className="text-sm text-blue-600">Allow users to register accounts on the site.</p>
                     </div>
                     <Switch
                       id="allowRegistration"
                       checked={settings.allowRegistration}
                       onCheckedChange={(checked) => handleSwitchChange("allowRegistration", checked)}
+                      className="data-[state=checked]:bg-blue-500"
                     />
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              </TabsContent>
 
-            <TabsContent value="uploads" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Upload Settings</CardTitle>
-                  <CardDescription>Configure settings for file uploads and resource submissions.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
+              <TabsContent value="uploads" className="p-6 bg-white">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
                     <div className="space-y-0.5">
-                      <Label htmlFor="requireApproval">Require Approval</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <Label htmlFor="requireApproval" className="text-blue-800">Require Approval</Label>
+                      <p className="text-sm text-blue-600">
                         Require admin approval for all resource submissions.
                       </p>
                     </div>
@@ -176,10 +173,11 @@ export default function SettingsPage() {
                       id="requireApproval"
                       checked={settings.requireApproval}
                       onCheckedChange={(checked) => handleSwitchChange("requireApproval", checked)}
+                      className="data-[state=checked]:bg-blue-500"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="maxFileSize">Maximum File Size (MB)</Label>
+                    <Label htmlFor="maxFileSize" className="text-blue-800">Maximum File Size (MB)</Label>
                     <Input
                       id="maxFileSize"
                       name="maxFileSize"
@@ -188,35 +186,31 @@ export default function SettingsPage() {
                       max="100"
                       value={settings.maxFileSize}
                       onChange={handleInputChange}
+                      className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="allowedFileTypes">Allowed File Types</Label>
+                    <Label htmlFor="allowedFileTypes" className="text-blue-800">Allowed File Types</Label>
                     <Input
                       id="allowedFileTypes"
                       name="allowedFileTypes"
                       value={settings.allowedFileTypes}
                       onChange={handleInputChange}
+                      className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
                     />
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-blue-600">
                       Comma-separated list of file extensions (e.g., .pdf,.doc,.docx)
                     </p>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              </TabsContent>
 
-            <TabsContent value="notifications" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notification Settings</CardTitle>
-                  <CardDescription>Configure email and system notification settings.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
+              <TabsContent value="notifications" className="p-6 bg-white">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
                     <div className="space-y-0.5">
-                      <Label htmlFor="emailNotifications">Email Notifications</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <Label htmlFor="emailNotifications" className="text-blue-800">Email Notifications</Label>
+                      <p className="text-sm text-blue-600">
                         Send email notifications for important system events.
                       </p>
                     </div>
@@ -224,25 +218,20 @@ export default function SettingsPage() {
                       id="emailNotifications"
                       checked={settings.emailNotifications}
                       onCheckedChange={(checked) => handleSwitchChange("emailNotifications", checked)}
+                      className="data-[state=checked]:bg-blue-500"
                     />
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              </TabsContent>
 
-            <TabsContent value="maintenance" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Maintenance Settings</CardTitle>
-                  <CardDescription>Configure system maintenance and backup settings.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
+              <TabsContent value="maintenance" className="p-6 bg-white">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
                     <div className="space-y-0.5">
-                      <Label htmlFor="maintenanceMode" className="font-medium text-red-500">
+                      <Label htmlFor="maintenanceMode" className="font-medium text-red-600">
                         Maintenance Mode
                       </Label>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-red-500">
                         Put the site in maintenance mode. Only administrators can access the site.
                       </p>
                     </div>
@@ -250,15 +239,20 @@ export default function SettingsPage() {
                       id="maintenanceMode"
                       checked={settings.maintenanceMode}
                       onCheckedChange={(checked) => handleSwitchChange("maintenanceMode", checked)}
+                      className="data-[state=checked]:bg-red-500"
                     />
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </Card>
 
-          <div className="mt-6 flex justify-end">
-            <Button onClick={handleSaveSettings} disabled={saving}>
+          <div className="mt-6 flex justify-center">
+            <Button 
+              onClick={handleSaveSettings} 
+              disabled={saving}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-lg shadow-md transition-all"
+            >
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

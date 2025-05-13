@@ -4,8 +4,9 @@ const multer = require("multer")
 const path = require("path")
 const fs = require("fs")
 const db = require("../config/database")
-const { isAuthenticated, isAuthorized, isSupervisorOrAdmin } = require("../middleware/auth")
+const { isAuthenticated, isAuthorized, isSupervisorOrAdmin, isAdmin } = require("../middleware/auth")
 const { validateResourceUpload, validateResourceAction } = require("../middleware/validators")
+const { sendResourceApprovalNotification } = require("../utils/emailService")
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -34,6 +35,106 @@ const upload = multer({
       cb(new Error("Invalid file type. Only PDF, DOC, DOCX, PPT, PPTX, and ZIP files are allowed."))
     }
   },
+})
+
+
+// Approve a resource (admin or supervisor)
+router.put("/approve/:id", isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const resourceId = req.params.id
+    const userId = req.session.user.id
+    const userRole = req.session.user.role
+
+    // Check if user has permission to approve (admin or supervisor)
+    if (userRole !== "admin" && userRole !== "supervisor") {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to approve resources",
+      })
+    }
+
+    // For supervisors, check if they are assigned to this resource
+    if (userRole === "supervisor") {
+      const [supervisorResources] = await db.query("SELECT * FROM resources WHERE id = ? AND supervisorId = ?", [
+        resourceId,
+        userId,
+      ])
+
+      if (supervisorResources.length === 0) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only approve resources assigned to you",
+        })
+      }
+    }
+
+    // Update resource status to approved
+    const [updateResult] = await db.query(
+      'UPDATE resources SET status = "approved", approvedAt = NOW(), approvedBy = ? WHERE id = ?',
+      [userId, resourceId],
+    )
+
+    if (updateResult.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Resource not found",
+      })
+    }
+
+    // Get the resource details for the notification
+    const [resources] = await db.query(
+      `SELECT r.*, 
+        u1.fullName AS uploadedByName,
+        u2.fullName AS studentName,
+        u2.department AS studentDepartment,
+        u3.fullName AS supervisorName,
+        rm.year, rm.semester, rm.course, rm.tags
+      FROM resources r
+      LEFT JOIN users u1 ON r.uploadedBy = u1.id
+      LEFT JOIN users u2 ON r.studentId = u2.id
+      LEFT JOIN users u3 ON r.supervisorId = u3.id
+      LEFT JOIN resource_metadata rm ON r.id = rm.resourceId
+      WHERE r.id = ?`,
+      [resourceId],
+    )
+
+    if (resources.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Resource not found",
+      })
+    }
+
+    const resource = resources[0]
+
+    // Send notification emails to all users
+    try {
+      console.log("Attempting to send approval notifications for resource:", resourceId)
+      const notificationResult = await sendResourceApprovalNotification(resource)
+      console.log("Notification result:", notificationResult)
+    } catch (emailError) {
+      console.error("Failed to send resource approval notifications:", emailError)
+      // Continue with approval even if email fails
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Resource approved successfully and users notified",
+      resource: {
+        id: resource.id,
+        title: resource.title,
+        type: resource.type,
+        status: "approved",
+      },
+    })
+  } catch (error) {
+    console.error("Error approving resource:", error)
+    res.status(500).json({
+      success: false,
+      message: "Failed to approve resource",
+      error: error.message,
+    })
+  }
 })
 
 // Get all resources with pagination and filtering

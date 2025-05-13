@@ -3,20 +3,23 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Save, Loader2 } from "lucide-react"
-import DashboardNav from "@/components/dashboard-nav"
-import DashboardHeader from "@/components/dashboard-header"
+import { Save, Loader2, Bell, CheckCircle, User, ArrowLeft, Settings, ChevronDown } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function SupervisorSettingsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState("notifications")
   const [settings, setSettings] = useState({
     emailNotifications: true,
     autoApproveMinorProjects: false,
@@ -26,6 +29,7 @@ export default function SupervisorSettingsPage() {
     showContactInfo: true,
   })
   const [departments, setDepartments] = useState([])
+  const [expanded, setExpanded] = useState(false)
 
   // Check authentication on component mount
   useEffect(() => {
@@ -116,167 +120,291 @@ export default function SupervisorSettingsPage() {
     }
   }
 
+  const toggleExpanded = () => {
+    setExpanded(!expanded)
+  }
+
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
-        <DashboardHeader />
-        <div className="container flex-1 items-center justify-center flex">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-lg font-medium text-gray-700">Loading your settings...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <DashboardHeader />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
-          <DashboardNav isSupervisor={true} />
-        </aside>
-        <main className="flex w-full flex-col overflow-hidden">
-          <div className="flex items-center justify-between py-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Supervisor Settings</h1>
-              <p className="text-muted-foreground">Configure your supervisor account settings and preferences.</p>
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      {/* Header with gradient background */}
+      <header className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full bg-white/10 hover:bg-white/20"
+                onClick={() => router.push('/dashboard')}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold">Supervisor Settings</h1>
+                <p className="text-sm text-white/80">Customize your supervisor profile and preferences</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className="bg-white/20 hover:bg-white/30 cursor-pointer text-white">
+                Supervisor
+              </Badge>
+              <Avatar className="h-10 w-10 border-2 border-white/30">
+                <AvatarImage src="/placeholder-avatar.jpg" />
+                <AvatarFallback className="bg-white/20 text-white">SV</AvatarFallback>
+              </Avatar>
             </div>
           </div>
+        </div>
+      </header>
 
-          <form onSubmit={handleSaveSettings}>
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notification Settings</CardTitle>
-                  <CardDescription>Configure how you receive notifications about resources.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="emailNotifications">Email Notifications</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Receive email notifications when new resources are submitted for your approval.
-                      </p>
-                    </div>
-                    <Switch
-                      id="emailNotifications"
-                      checked={settings.emailNotifications}
-                      onCheckedChange={(checked) => handleSwitchChange("emailNotifications", checked)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Approval Settings</CardTitle>
-                  <CardDescription>Configure how resource approvals are handled.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="autoApproveMinorProjects">Auto-Approve Mini Projects</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Automatically approve mini projects without manual review.
-                      </p>
-                    </div>
-                    <Switch
-                      id="autoApproveMinorProjects"
-                      checked={settings.autoApproveMinorProjects}
-                      onCheckedChange={(checked) => handleSwitchChange("autoApproveMinorProjects", checked)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="defaultDepartment">Default Department</Label>
-                    <Select
-                      value={settings.defaultDepartment}
-                      onValueChange={(value) => handleSelectChange("defaultDepartment", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departments.map((department) => (
-                          <SelectItem key={department} value={department}>
-                            {department}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">The default department for resources you supervise.</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Display Settings</CardTitle>
-                  <CardDescription>Configure how your information is displayed to students.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="displayNameFormat">Display Name Format</Label>
-                    <Select
-                      value={settings.displayNameFormat}
-                      onValueChange={(value) => handleSelectChange("displayNameFormat", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select display name format" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="fullName">Full Name</SelectItem>
-                        <SelectItem value="username">Username</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {settings.displayNameFormat === "custom" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="customDisplayName">Custom Display Name</Label>
-                      <Input
-                        id="customDisplayName"
-                        name="customDisplayName"
-                        value={settings.customDisplayName}
-                        onChange={handleInputChange}
-                        placeholder="Dr. John Doe"
-                      />
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="showContactInfo">Show Contact Information</Label>
-                      <p className="text-sm text-muted-foreground">Allow students to see your contact information.</p>
-                    </div>
-                    <Switch
-                      id="showContactInfo"
-                      checked={settings.showContactInfo}
-                      onCheckedChange={(checked) => handleSwitchChange("showContactInfo", checked)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="flex justify-end">
-                <Button type="submit" disabled={saving}>
+      {/* Main content */}
+      <main className="container mx-auto flex-1 px-4 py-8">
+        <form onSubmit={handleSaveSettings} className="max-w-4xl mx-auto">
+          <Card className="mb-8 overflow-hidden border-0 shadow-lg">
+            <div className="bg-gradient-to-r from-indigo-100 to-purple-100 p-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div className="mb-4 md:mb-0">
+                  <h2 className="text-xl font-bold text-gray-800">Settings Overview</h2>
+                  <p className="text-sm text-gray-600">Configure your account to match your workflow</p>
+                </div>
+                <Button 
+                  type="submit" 
+                  disabled={saving}
+                  className="bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                >
                   {saving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
+                      Saving Changes
                     </>
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      Save Settings
+                      Save All Changes
                     </>
                   )}
                 </Button>
               </div>
             </div>
-          </form>
-        </main>
-      </div>
+          </Card>
+
+          <div className="grid gap-8 md:grid-cols-12">
+            <div className="md:col-span-12">
+              <Tabs 
+                defaultValue="notifications" 
+                value={activeTab} 
+                onValueChange={setActiveTab}
+                className="mb-8"
+              >
+                <div className="mb-6 flex flex-wrap gap-2 md:flex-nowrap md:justify-center">
+                  <TabsList className="grid w-full grid-cols-1 gap-2 md:grid-cols-3 p-1 rounded-xl bg-white shadow-md">
+                    <TabsTrigger 
+                      value="notifications" 
+                      className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
+                    >
+                      <Bell className="mr-2 h-4 w-4" />
+                      Notifications
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="approvals" 
+                      className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Approvals
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="display" 
+                      className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-purple-600 data-[state=active]:text-white"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      Display
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="notifications" className="mt-0">
+                  <Card className="overflow-hidden border-0 shadow-lg">
+                    <CardContent className="p-0">
+                      <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 p-6">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-full bg-indigo-100 p-2">
+                            <Bell className="h-5 w-5 text-indigo-600" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-800">Notification Preferences</h3>
+                            <p className="text-sm text-gray-600">Configure how you receive notifications about resources</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-lg bg-white border border-gray-100">
+                          <div>
+                            <Label htmlFor="emailNotifications" className="text-base font-medium">Email Notifications</Label>
+                            <p className="text-sm text-gray-600">Receive email notifications when new resources are submitted for your approval</p>
+                          </div>
+                          <Switch
+                            id="emailNotifications"
+                            checked={settings.emailNotifications}
+                            onCheckedChange={(checked) => handleSwitchChange("emailNotifications", checked)}
+                            className="data-[state=checked]:bg-indigo-600"
+                          />
+                        </div>
+                        
+                        <div className="mt-4">
+                          <button 
+                            type="button" 
+                            className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                            onClick={toggleExpanded}
+                          >
+                            <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                            {expanded ? 'Hide Advanced Options' : 'Show Advanced Options'}
+                          </button>
+                          
+                          {expanded && (
+                            <div className="mt-4 space-y-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
+                              <p className="text-sm text-gray-600">Additional notification settings will appear here</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="approvals" className="mt-0">
+                  <Card className="overflow-hidden border-0 shadow-lg">
+                    <CardContent className="p-0">
+                      <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-full bg-purple-100 p-2">
+                            <CheckCircle className="h-5 w-5 text-purple-600" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-800">Approval Workflow</h3>
+                            <p className="text-sm text-gray-600">Configure how resource approvals are handled</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-6 space-y-6">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-lg bg-white border border-gray-100">
+                          <div>
+                            <Label htmlFor="autoApproveMinorProjects" className="text-base font-medium">Auto-Approve Mini Projects</Label>
+                            <p className="text-sm text-gray-600">Automatically approve mini projects without manual review</p>
+                          </div>
+                          <Switch
+                            id="autoApproveMinorProjects"
+                            checked={settings.autoApproveMinorProjects}
+                            onCheckedChange={(checked) => handleSwitchChange("autoApproveMinorProjects", checked)}
+                            className="data-[state=checked]:bg-purple-600"
+                          />
+                        </div>
+                        
+                        <div className="space-y-3 p-4 rounded-lg bg-white border border-gray-100">
+                          <Label htmlFor="defaultDepartment" className="text-base font-medium">Default Department</Label>
+                          <Select
+                            value={settings.defaultDepartment}
+                            onValueChange={(value) => handleSelectChange("defaultDepartment", value)}
+                          >
+                            <SelectTrigger className="bg-white border-gray-200">
+                              <SelectValue placeholder="Select department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {departments.map((department) => (
+                                <SelectItem key={department} value={department}>
+                                  {department}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-gray-600">The default department for resources you supervise</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="display" className="mt-0">
+                  <Card className="overflow-hidden border-0 shadow-lg">
+                    <CardContent className="p-0">
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-full bg-blue-100 p-2">
+                            <User className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-800">Display Preferences</h3>
+                            <p className="text-sm text-gray-600">Configure how your information is displayed to students</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-6 space-y-6">
+                        <div className="space-y-3 p-4 rounded-lg bg-white border border-gray-100">
+                          <Label htmlFor="displayNameFormat" className="text-base font-medium">Display Name Format</Label>
+                          <Select
+                            value={settings.displayNameFormat}
+                            onValueChange={(value) => handleSelectChange("displayNameFormat", value)}
+                          >
+                            <SelectTrigger className="bg-white border-gray-200">
+                              <SelectValue placeholder="Select display name format" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="fullName">Full Name</SelectItem>
+                              <SelectItem value="username">Username</SelectItem>
+                              <SelectItem value="custom">Custom</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {settings.displayNameFormat === "custom" && (
+                          <div className="space-y-3 p-4 rounded-lg bg-white border border-gray-100">
+                            <Label htmlFor="customDisplayName" className="text-base font-medium">Custom Display Name</Label>
+                            <Input
+                              id="customDisplayName"
+                              name="customDisplayName"
+                              value={settings.customDisplayName}
+                              onChange={handleInputChange}
+                              placeholder="Dr. John Doe"
+                              className="bg-white border-gray-200"
+                            />
+                          </div>
+                        )}
+
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-lg bg-white border border-gray-100">
+                          <div>
+                            <Label htmlFor="showContactInfo" className="text-base font-medium">Show Contact Information</Label>
+                            <p className="text-sm text-gray-600">Allow students to see your contact information</p>
+                          </div>
+                          <Switch
+                            id="showContactInfo"
+                            checked={settings.showContactInfo}
+                            onCheckedChange={(checked) => handleSwitchChange("showContactInfo", checked)}
+                            className="data-[state=checked]:bg-blue-600"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </form>
+      </main>
+      
+      <footer className="py-6 text-center text-sm text-gray-600">
+        <p>© {new Date().getFullYear()} Resource Management System. All rights reserved.</p>
+      </footer>
     </div>
   )
 }

@@ -16,6 +16,7 @@ const userRoutes = require("./routes/users")
 const analyticsRoutes = require("./routes/analitics")
 const notificationRoutes = require("./routes/notifications")
 const commentRoutes = require("./routes/comments")
+const aiRoutes = require("./routes/ai");
 
 // Database connection
 const db = require("./config/database")
@@ -78,6 +79,8 @@ app.use("/api/users", userRoutes)
 app.use("/api/analytics", analyticsRoutes)
 app.use("/api/notifications", notificationRoutes)
 app.use("/api/comments", commentRoutes)
+
+app.use("/api/ai", aiRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

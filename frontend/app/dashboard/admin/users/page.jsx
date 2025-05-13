@@ -9,10 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Search, Plus, Pencil, Trash2 } from "lucide-react"
-import DashboardNav from "@/components/dashboard-nav"
+import { Search, Plus, Pencil, Trash2, Users, UserPlus, Sliders } from "lucide-react"
 import DashboardHeader from "@/components/dashboard-header"
 import DataTable from "@/components/data-table"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 export default function UsersPage() {
   const router = useRouter()
@@ -293,11 +293,19 @@ export default function UsersPage() {
       (user.indexNumber && user.indexNumber.toLowerCase().includes(searchQuery.toLowerCase())),
   )
 
+  // Statistics
+  const totalUsers = users.length
+  const activeUsers = users.filter(user => user.isActive).length
+  const inactiveUsers = users.filter(user => !user.isActive).length
+  const studentCount = users.filter(user => user.role === "student").length
+  const supervisorCount = users.filter(user => user.role === "supervisor").length
+  const adminCount = users.filter(user => user.role === "admin").length
+
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
         <DashboardHeader />
-        <div className="container flex-1 items-center justify-center flex">
+        <div className="container mx-auto flex-1 items-center justify-center flex">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       </div>
@@ -305,304 +313,426 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
       <DashboardHeader />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
-          <DashboardNav isAdmin={true} />
-        </aside>
-        <main className="flex w-full flex-col overflow-hidden">
-          <div className="flex items-center justify-between py-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-              <p className="text-muted-foreground">Manage users, roles, and permissions.</p>
+      <div className="container mx-auto py-6 px-4 md:px-6 max-w-6xl">
+        <Card className="border-none shadow-lg bg-white dark:bg-gray-900 mb-6">
+          <CardHeader className="pb-3 border-b">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-3xl font-bold text-primary">User Management</CardTitle>
+                <CardDescription className="text-gray-500 dark:text-gray-400 mt-1">
+                  Manage users, roles and permissions
+                </CardDescription>
+              </div>
+              <Button 
+                className="gap-1 bg-primary hover:bg-primary/90 text-white" 
+                onClick={() => setIsAddUserOpen(true)}
+              >
+                <UserPlus className="h-4 w-4" />
+                Add User
+              </Button>
             </div>
-          </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {/* Statistics Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900">
+                <CardContent className="flex items-center justify-between p-4">
+                  <div>
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Users</p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{totalUsers}</p>
+                    <div className="flex mt-1 space-x-2">
+                      <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                        {activeUsers} Active
+                      </Badge>
+                      <Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
+                        {inactiveUsers} Inactive
+                      </Badge>
+                    </div>
+                  </div>
+                  <Users className="h-10 w-10 text-blue-500 dark:text-blue-400" />
+                </CardContent>
+              </Card>
 
-          <div className="my-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2 flex-1">
-                <Search className="h-4 w-4 text-muted-foreground" />
+              <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-900">
+                <CardContent className="flex items-center justify-between p-4">
+                  <div>
+                    <p className="text-sm font-medium text-purple-600 dark:text-purple-400">User Roles</p>
+                    <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{studentCount + supervisorCount + adminCount}</p>
+                    <div className="flex mt-1 space-x-2">
+                      <Badge variant="secondary" className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                        {studentCount} Students
+                      </Badge>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                        {supervisorCount} Supervisors
+                      </Badge>
+                    </div>
+                  </div>
+                  <Sliders className="h-10 w-10 text-purple-500 dark:text-purple-400" />
+                </CardContent>
+              </Card>
+
+              <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900 lg:col-span-1 md:col-span-2">
+                <CardContent className="flex items-center justify-between p-4">
+                  <div>
+                    <p className="text-sm font-medium text-amber-600 dark:text-amber-400">Administrators</p>
+                    <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">{adminCount}</p>
+                    <div className="mt-1">
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
+                        System Management
+                      </Badge>
+                    </div>
+                  </div>
+                  <Sliders className="h-10 w-10 text-amber-500 dark:text-amber-400" />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Search Section */}
+            <div className="mb-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search users..."
+                  placeholder="Search users by name, email, role, department or index number..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="max-w-md"
+                  className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                 />
               </div>
-              <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-                <Button className="gap-1" onClick={() => setIsAddUserOpen(true)}>
-                  <Plus className="h-4 w-4" />
-                  Add User
-                </Button>
-                <DialogContent className="sm:max-w-[600px]">
-                  <DialogHeader>
-                    <DialogTitle>Add New User</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleAddUser} className="space-y-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="username">Username</Label>
-                        <Input
-                          id="username"
-                          value={newUser.username}
-                          onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={newUser.email}
-                          onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName">Full Name</Label>
-                      <Input
-                        id="fullName"
-                        value={newUser.fullName}
-                        onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
-                        <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="student">Student</SelectItem>
-                            <SelectItem value="supervisor">Supervisor</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="department">Department {newUser.role === "supervisor" ? "*" : ""}</Label>
-                        <Select
-                          value={newUser.department}
-                          onValueChange={(value) => setNewUser({ ...newUser, department: value })}
-                          required={newUser.role === "supervisor"}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select department" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {departments.map((department) => (
-                              <SelectItem key={department} value={department}>
-                                {department}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      {newUser.role === "student" && (
-                        <div className="space-y-2">
-                          <Label htmlFor="indexNumber">Index Number *</Label>
-                          <Input
-                            id="indexNumber"
-                            value={newUser.indexNumber}
-                            onChange={(e) => setNewUser({ ...newUser, indexNumber: e.target.value })}
-                            required={newUser.role === "student"}
-                          />
-                        </div>
-                      )}
-                      <div className={newUser.role === "student" ? "" : "col-span-2"}>
-                        <Label htmlFor="phoneNumber">Phone Number</Label>
-                        <Input
-                          id="phoneNumber"
-                          value={newUser.phoneNumber}
-                          onChange={(e) => setNewUser({ ...newUser, phoneNumber: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={newUser.password}
-                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <DialogFooter>
-                      <Button type="submit">Create User</Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
             </div>
-          </div>
 
-          <DataTable
-            data={filteredUsers}
-            columns={[
-              { header: "Name", accessorKey: "fullName" },
-              { header: "Email", accessorKey: "email" },
-              {
-                header: "Role",
-                accessorKey: "role",
-                cell: (info) => (
-                  <Badge
-                    variant={
-                      info.getValue() === "admin"
-                        ? "destructive"
-                        : info.getValue() === "supervisor"
-                          ? "default"
-                          : "secondary"
-                    }
-                  >
-                    {info.getValue()}
-                  </Badge>
-                ),
-              },
-              {
-                header: "Index Number",
-                accessorKey: "indexNumber",
-                cell: (info) => info.getValue() || "N/A",
-              },
-              {
-                header: "Department",
-                accessorKey: "department",
-                cell: (info) => info.getValue() || "N/A",
-              },
-              {
-                header: "Status",
-                accessorKey: "isActive",
-                cell: (info) => (
-                  <Badge variant={info.getValue() ? "success" : "outline"}>
-                    {info.getValue() ? "Active" : "Inactive"}
-                  </Badge>
-                ),
-              },
-              {
-                header: "Actions",
-                cell: (info) => (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedUser({
-                          ...info.row.original,
-                          originalRole: info.row.original.role,
-                        })
-                        setIsEditUserOpen(true)
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={info.row.original.isActive ? "destructive" : "outline"}
-                      size="sm"
-                      onClick={() => handleToggleUserStatus(info.row.original.id, info.row.original.isActive)}
-                    >
-                      {info.row.original.isActive ? "Deactivate" : "Activate"}
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDeleteUser(info.row.original.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+            {/* User Table */}
+            <Card className="border border-gray-200 dark:border-gray-800 overflow-hidden">
+              <CardContent className="p-0">
+                <DataTable
+                  data={filteredUsers}
+                  columns={[
+                    { header: "Name", accessorKey: "fullName" },
+                    { header: "Email", accessorKey: "email" },
+                    {
+                      header: "Role",
+                      accessorKey: "role",
+                      cell: (info) => (
+                        <Badge
+                          variant={
+                            info.getValue() === "admin"
+                              ? "destructive"
+                              : info.getValue() === "supervisor"
+                                ? "default"
+                                : "secondary"
+                          }
+                          className={
+                            info.getValue() === "admin"
+                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                              : info.getValue() === "supervisor"
+                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                                : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                          }
+                        >
+                          {info.getValue()}
+                        </Badge>
+                      ),
+                    },
+                    {
+                      header: "Index Number",
+                      accessorKey: "indexNumber",
+                      cell: (info) => info.getValue() || "N/A",
+                    },
+                    {
+                      header: "Department",
+                      accessorKey: "department",
+                      cell: (info) => info.getValue() || "N/A",
+                    },
+                    {
+                      header: "Status",
+                      accessorKey: "isActive",
+                      cell: (info) => (
+                        <Badge 
+                          variant={info.getValue() ? "success" : "outline"}
+                          className={
+                            info.getValue() 
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" 
+                              : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                          }
+                        >
+                          {info.getValue() ? "Active" : "Inactive"}
+                        </Badge>
+                      ),
+                    },
+                    {
+                      header: "Actions",
+                      cell: (info) => (
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-300"
+                            onClick={() => {
+                              setSelectedUser({
+                                ...info.row.original,
+                                originalRole: info.row.original.role,
+                              })
+                              setIsEditUserOpen(true)
+                            }}
+                          >
+                            <Pencil className="h-4 w-4 mr-1" /> Edit
+                          </Button>
+                          <Button
+                            variant={info.row.original.isActive ? "destructive" : "outline"}
+                            size="sm"
+                            className={
+                              info.row.original.isActive 
+                                ? "bg-amber-500 hover:bg-amber-600 border-amber-600" 
+                                : "border-green-200 bg-green-50 hover:bg-green-100 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-300"
+                            }
+                            onClick={() => handleToggleUserStatus(info.row.original.id, info.row.original.isActive)}
+                          >
+                            {info.row.original.isActive ? "Deactivate" : "Activate"}
+                          </Button>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            className="bg-red-500 hover:bg-red-600 border-red-600"
+                            onClick={() => handleDeleteUser(info.row.original.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ),
+                    },
+                  ]}
+                />
+
+                {filteredUsers.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                    <Users className="h-12 w-12 text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">No users found</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1 max-w-md">
+                      {searchQuery 
+                        ? "Try adjusting your search terms or filters" 
+                        : "Get started by adding your first user"}
+                    </p>
+                    {!searchQuery && (
+                      <Button
+                        className="mt-4 gap-1"
+                        onClick={() => setIsAddUserOpen(true)}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                        Add User
+                      </Button>
+                    )}
                   </div>
-                ),
-              },
-            ]}
-          />
+                )}
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
 
-          {/* Edit User Dialog */}
-          {selectedUser && (
-            <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Edit User</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleEditUser} className="space-y-4 py-4">
+        {/* Add User Dialog */}
+        <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+          <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-0">
+            <DialogHeader className="border-b pb-4">
+              <DialogTitle className="text-xl font-bold text-primary">Add New User</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleAddUser} className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-gray-700 dark:text-gray-300">Username</Label>
+                  <Input
+                    id="username"
+                    value={newUser.username}
+                    onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                    required
+                    className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                    required
+                    className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="text-gray-700 dark:text-gray-300">Full Name</Label>
+                <Input
+                  id="fullName"
+                  value={newUser.fullName}
+                  onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
+                  required
+                  className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="role" className="text-gray-700 dark:text-gray-300">Role</Label>
+                  <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+                    <SelectTrigger className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="supervisor">Supervisor</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="department" className="text-gray-700 dark:text-gray-300">
+                    Department {newUser.role === "supervisor" ? "*" : ""}
+                  </Label>
+                  <Select
+                    value={newUser.department}
+                    onValueChange={(value) => setNewUser({ ...newUser, department: value })}
+                    required={newUser.role === "supervisor"}
+                  >
+                    <SelectTrigger className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map((department) => (
+                        <SelectItem key={department} value={department}>
+                          {department}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {newUser.role === "student" && (
                   <div className="space-y-2">
-                    <Label htmlFor="edit-fullName">Full Name</Label>
+                    <Label htmlFor="indexNumber" className="text-gray-700 dark:text-gray-300">Index Number *</Label>
                     <Input
-                      id="edit-fullName"
-                      value={selectedUser.fullName}
-                      onChange={(e) => setSelectedUser({ ...selectedUser, fullName: e.target.value })}
-                      required
+                      id="indexNumber"
+                      value={newUser.indexNumber}
+                      onChange={(e) => setNewUser({ ...newUser, indexNumber: e.target.value })}
+                      required={newUser.role === "student"}
+                      className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-role">Role</Label>
-                      <Select
-                        value={selectedUser.role}
-                        onValueChange={(value) => setSelectedUser({ ...selectedUser, role: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="student">Student</SelectItem>
-                          <SelectItem value="supervisor">Supervisor</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-department">
-                        Department {selectedUser.role === "supervisor" ? "*" : ""}
-                      </Label>
-                      <Select
-                        value={selectedUser.department || ""}
-                        onValueChange={(value) => setSelectedUser({ ...selectedUser, department: value })}
-                        required={selectedUser.role === "supervisor"}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {departments.map((department) => (
-                            <SelectItem key={department} value={department}>
-                              {department}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                )}
+                <div className={newUser.role === "student" ? "" : "col-span-2"}>
+                  <Label htmlFor="phoneNumber" className="text-gray-700 dark:text-gray-300">Phone Number</Label>
+                  <Input
+                    id="phoneNumber"
+                    value={newUser.phoneNumber}
+                    onChange={(e) => setNewUser({ ...newUser, phoneNumber: e.target.value })}
+                    className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  required
+                  className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                />
+              </div>
+              <DialogFooter className="pt-4 border-t">
+                <Button type="submit" className="bg-primary hover:bg-primary/90">Create User</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit User Dialog */}
+        {selectedUser && (
+          <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+            <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-0">
+              <DialogHeader className="border-b pb-4">
+                <DialogTitle className="text-xl font-bold text-primary">Edit User</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleEditUser} className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-fullName" className="text-gray-700 dark:text-gray-300">Full Name</Label>
+                  <Input
+                    id="edit-fullName"
+                    value={selectedUser.fullName}
+                    onChange={(e) => setSelectedUser({ ...selectedUser, fullName: e.target.value })}
+                    required
+                    className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-role" className="text-gray-700 dark:text-gray-300">Role</Label>
+                    <Select
+                      value={selectedUser.role}
+                      onValueChange={(value) => setSelectedUser({ ...selectedUser, role: value })}
+                    >
+                      <SelectTrigger className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="student">Student</SelectItem>
+                        <SelectItem value="supervisor">Supervisor</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {selectedUser.role === "student" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="edit-indexNumber">Index Number *</Label>
-                        <Input
-                          id="edit-indexNumber"
-                          value={selectedUser.indexNumber || ""}
-                          onChange={(e) => setSelectedUser({ ...selectedUser, indexNumber: e.target.value })}
-                          required={selectedUser.role === "student"}
-                        />
-                      </div>
-                    )}
-                    <div className={selectedUser.role === "student" ? "" : "col-span-2"}>
-                      <Label htmlFor="edit-phoneNumber">Phone Number</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-department" className="text-gray-700 dark:text-gray-300">
+                      Department {selectedUser.role === "supervisor" ? "*" : ""}
+                    </Label>
+                    <Select
+                      value={selectedUser.department || ""}
+                      onValueChange={(value) => setSelectedUser({ ...selectedUser, department: value })}
+                      required={selectedUser.role === "supervisor"}
+                    >
+                      <SelectTrigger className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                        <SelectValue placeholder="Select department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map((department) => (
+                          <SelectItem key={department} value={department}>
+                            {department}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedUser.role === "student" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-indexNumber" className="text-gray-700 dark:text-gray-300">Index Number *</Label>
                       <Input
-                        id="edit-phoneNumber"
-                        value={selectedUser.phoneNumber || ""}
-                        onChange={(e) => setSelectedUser({ ...selectedUser, phoneNumber: e.target.value })}
+                        id="edit-indexNumber"
+                        value={selectedUser.indexNumber || ""}
+                        onChange={(e) => setSelectedUser({ ...selectedUser, indexNumber: e.target.value })}
+                        required={selectedUser.role === "student"}
+                        className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                       />
                     </div>
+                  )}
+                  <div className={selectedUser.role === "student" ? "" : "col-span-2"}>
+                    <Label htmlFor="edit-phoneNumber" className="text-gray-700 dark:text-gray-300">Phone Number</Label>
+                    <Input
+                      id="edit-phoneNumber"
+                      value={selectedUser.phoneNumber || ""}
+                      onChange={(e) => setSelectedUser({ ...selectedUser, phoneNumber: e.target.value })}
+                      className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                    />
                   </div>
-                  <DialogFooter>
-                    <Button type="submit">Update User</Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-          )}
-        </main>
+                </div>
+                <DialogFooter className="pt-4 border-t">
+                  <Button type="submit" className="bg-primary hover:bg-primary/90">Update User</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   )

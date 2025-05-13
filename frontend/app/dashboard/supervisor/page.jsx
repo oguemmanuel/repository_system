@@ -6,15 +6,36 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
-import { FileText, GraduationCap, LogOut, Search, User, Eye, Download, ThumbsUp, ThumbsDown, Loader2, XCircle } from 'lucide-react'
+import {
+  FileText,
+  GraduationCap,
+  LogOut,
+  Search,
+  User,
+  Eye,
+  Download,
+  ThumbsUp,
+  ThumbsDown,
+  Loader2,
+  XCircle,
+  CheckCircle2,
+} from "lucide-react"
 import DashboardNav from "@/components/dashboard-nav"
 import DashboardHeader from "@/components/dashboard-header"
 import DataTable from "@/components/data-table"
 import { useRouter } from "next/navigation"
+import AISummaryButton from "@/components/ai-summary-button"
 
 export default function SupervisorDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -34,9 +55,11 @@ export default function SupervisorDashboard() {
   const [selectedResource, setSelectedResource] = useState(null)
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
   const [rejectionReason, setRejectionReason] = useState("")
-  // Add a new state for the approval dialog and reason
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false)
   const [approvalReason, setApprovalReason] = useState("")
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
+  const [actionType, setActionType] = useState("") // "approve" or "reject"
 
   const router = useRouter()
 
@@ -49,7 +72,6 @@ export default function SupervisorDashboard() {
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser)
           if (parsedUser.role !== "supervisor") {
-            // Redirect to appropriate dashboard
             router.push(`/dashboard/${parsedUser.role}`)
             return
           }
@@ -62,25 +84,20 @@ export default function SupervisorDashboard() {
         })
 
         if (!response.ok) {
-          // If backend check fails, clear localStorage and redirect to login
           localStorage.removeItem("user")
           router.push("/login")
           return
         }
 
         const data = await response.json()
-
-        // Update localStorage with fresh data
         localStorage.setItem("user", JSON.stringify(data.user))
 
-        // If not a supervisor, redirect
         if (data.user.role !== "supervisor") {
           router.push(`/dashboard/${data.user.role}`)
           return
         }
 
         setUser(data.user)
-
         fetchData(data.user)
       } catch (error) {
         console.error("Auth check error:", error)
@@ -154,7 +171,6 @@ export default function SupervisorDashboard() {
     }
   }
 
-  // Update the handleApprove function to include the approval reason
   const handleApprove = async (e) => {
     e?.preventDefault()
     if (!selectedResource || !approvalReason) return
@@ -178,7 +194,9 @@ export default function SupervisorDashboard() {
         throw new Error(errorData.message || "Failed to approve resource")
       }
 
-      toast.success("Resource has been approved and published")
+      setActionType("approve")
+      setSuccessMessage("Resource has been approved and published successfully!")
+      setShowSuccessDialog(true)
       setIsApproveDialogOpen(false)
       setApprovalReason("")
       setSelectedResource(null)
@@ -218,7 +236,9 @@ export default function SupervisorDashboard() {
         throw new Error(errorData.message || "Failed to reject resource")
       }
 
-      toast.success("Resource has been rejected")
+      setActionType("reject")
+      setSuccessMessage("Resource has been rejected successfully.")
+      setShowSuccessDialog(true)
       setIsRejectDialogOpen(false)
       setRejectionReason("")
       setSelectedResource(null)
@@ -236,7 +256,6 @@ export default function SupervisorDashboard() {
   }
 
   const handleDownload = (resourceId) => {
-    // Open the download URL in a new tab
     window.open(`http://localhost:5000/api/resources/${resourceId}/download`, "_blank")
   }
 
@@ -272,7 +291,6 @@ export default function SupervisorDashboard() {
       project.type?.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  // Get current time of day for greeting
   const getGreeting = () => {
     const hour = new Date().getHours()
     if (hour < 12) return "Good morning"
@@ -308,13 +326,21 @@ export default function SupervisorDashboard() {
               <p className="text-blue-600">Review and approve student submissions.</p>
             </div>
             <div className="flex items-center gap-2">
-              <Link href="/profile">
-                <Button variant="outline" size="icon" className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800">
+              <Link href="/dashboard/supervisor/profile">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="border-blue-300 cursor-pointer text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                >
                   <User className="h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/logout">
-                <Button variant="outline" size="icon" className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800 cursor-pointer"
+                >
                   <LogOut className="h-4 w-4" />
                 </Button>
               </Link>
@@ -371,9 +397,18 @@ export default function SupervisorDashboard() {
           </div>
           <Tabs defaultValue="pending" className="space-y-4">
             <TabsList className="bg-blue-100">
-              <TabsTrigger value="pending" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Pending Approvals</TabsTrigger>
-              <TabsTrigger value="approved" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">Approved Projects</TabsTrigger>
-              <TabsTrigger value="rejected" className="data-[state=active]:bg-rose-600 data-[state=active]:text-white">Rejected Projects</TabsTrigger>
+              <TabsTrigger value="pending" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                Pending Approvals
+              </TabsTrigger>
+              <TabsTrigger
+                value="approved"
+                className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+              >
+                Approved Projects
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="data-[state=active]:bg-rose-600 data-[state=active]:text-white">
+                Rejected Projects
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="pending" className="space-y-4">
               {filteredPending.length > 0 ? (
@@ -419,11 +454,16 @@ export default function SupervisorDashboard() {
                         cell: (info) => (
                           <div className="flex gap-2">
                             <Link href={`/resources/${info.row.original.id}`}>
-                              <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                              >
                                 <Eye className="h-4 w-4 mr-1" />
                                 View
                               </Button>
                             </Link>
+                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
                             <Button
                               variant="default"
                               size="sm"
@@ -450,9 +490,9 @@ export default function SupervisorDashboard() {
                               <ThumbsDown className="h-4 w-4 mr-1" />
                               Reject
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleDownload(info.row.original.id)}
                               className="border-slate-300 text-slate-700 hover:bg-slate-50"
                             >
@@ -469,9 +509,7 @@ export default function SupervisorDashboard() {
                 <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-lg shadow-sm">
                   <FileText className="h-12 w-12 text-amber-500 mb-4" />
                   <h3 className="text-lg font-medium text-amber-800">No pending approvals</h3>
-                  <p className="text-amber-600 mt-2">
-                    There are no projects waiting for your approval at this time.
-                  </p>
+                  <p className="text-amber-600 mt-2">There are no projects waiting for your approval at this time.</p>
                 </div>
               )}
             </TabsContent>
@@ -519,14 +557,19 @@ export default function SupervisorDashboard() {
                         cell: (info) => (
                           <div className="flex gap-2">
                             <Link href={`/resources/${info.row.original.id}`}>
-                              <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                              >
                                 <Eye className="h-4 w-4 mr-1" />
                                 View
                               </Button>
                             </Link>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleDownload(info.row.original.id)}
                               className="border-slate-300 text-slate-700 hover:bg-slate-50"
                             >
@@ -600,14 +643,19 @@ export default function SupervisorDashboard() {
                         cell: (info) => (
                           <div className="flex gap-2">
                             <Link href={`/resources/${info.row.original.id}`}>
-                              <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                              >
                                 <Eye className="h-4 w-4 mr-1" />
                                 View
                               </Button>
                             </Link>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleDownload(info.row.original.id)}
                               className="border-slate-300 text-slate-700 hover:bg-slate-50"
                             >
@@ -638,7 +686,9 @@ export default function SupervisorDashboard() {
               </DialogHeader>
               <form onSubmit={handleReject} className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="rejectionReason" className="text-slate-700">Reason for Rejection</Label>
+                  <Label htmlFor="rejectionReason" className="text-slate-700">
+                    Reason for Rejection
+                  </Label>
                   <Textarea
                     id="rejectionReason"
                     placeholder="Please provide a reason for rejecting this resource"
@@ -650,7 +700,12 @@ export default function SupervisorDashboard() {
                   />
                 </div>
                 <DialogFooter>
-                  <Button type="submit" variant="destructive" disabled={processingAction} className="bg-rose-600 hover:bg-rose-700">
+                  <Button
+                    type="submit"
+                    variant="destructive"
+                    disabled={processingAction}
+                    className="bg-rose-600 hover:bg-rose-700"
+                  >
                     {processingAction ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -664,6 +719,7 @@ export default function SupervisorDashboard() {
               </form>
             </DialogContent>
           </Dialog>
+
           {/* Approval Dialog */}
           <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
             <DialogContent className="bg-white border-0 shadow-lg">
@@ -672,7 +728,9 @@ export default function SupervisorDashboard() {
               </DialogHeader>
               <form onSubmit={handleApprove} className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="approvalReason" className="text-slate-700">Reason for Approval</Label>
+                  <Label htmlFor="approvalReason" className="text-slate-700">
+                    Reason for Approval
+                  </Label>
                   <Textarea
                     id="approvalReason"
                     placeholder="Please provide a reason for approving this resource"
@@ -696,6 +754,34 @@ export default function SupervisorDashboard() {
                   </Button>
                 </DialogFooter>
               </form>
+            </DialogContent>
+          </Dialog>
+
+          {/* Success Dialog */}
+          <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+            <DialogContent className="bg-white border-0 shadow-lg">
+              <DialogHeader>
+                <div className="flex items-center justify-center">
+                  {actionType === "approve" ? (
+                    <CheckCircle2 className="h-12 w-12 text-emerald-500 mb-4" />
+                  ) : (
+                    <XCircle className="h-12 w-12 text-rose-500 mb-4" />
+                  )}
+                </div>
+                <DialogTitle className="text-center">
+                  {actionType === "approve" ? "Approval Successful" : "Rejection Successful"}
+                </DialogTitle>
+                <DialogDescription className="text-center">{successMessage}</DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="sm:justify-center">
+                <Button
+                  type="button"
+                  onClick={() => setShowSuccessDialog(false)}
+                  className={`${actionType === "approve" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"}`}
+                >
+                  OK
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </main>

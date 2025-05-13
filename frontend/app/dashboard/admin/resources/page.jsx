@@ -5,13 +5,13 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Search, FileText, Download, Trash2, Eye } from "lucide-react"
-import DashboardNav from "@/components/dashboard-nav"
+import { Search, FileText, Download, Trash2, Eye, Upload } from "lucide-react"
 import DashboardHeader from "@/components/dashboard-header"
 import DataTable from "@/components/data-table"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import AISummaryButton from "@/components/ai-summary-button"
 
 export default function ResourcesPage() {
   const router = useRouter()
@@ -162,160 +162,216 @@ export default function ResourcesPage() {
     }
   }
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "approved":
+        return "bg-green-50 text-green-700 border-green-200"
+      case "rejected":
+        return "bg-red-50 text-red-700 border-red-200"
+      case "pending":
+        return "bg-yellow-50 text-yellow-700 border-yellow-200"
+      default:
+        return "bg-gray-50 text-gray-700 border-gray-200"
+    }
+  }
+
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-slate-100">
         <DashboardHeader />
-        <div className="container flex-1 items-center justify-center flex">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="container max-w-6xl mx-auto flex-1 items-center justify-center flex">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-slate-100">
       <DashboardHeader />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
-          <DashboardNav isAdmin={true} />
-        </aside>
-        <main className="flex w-full flex-col overflow-hidden">
-          <div className="flex items-center justify-between py-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Resource Management</h1>
-              <p className="text-muted-foreground">Manage all resources in the repository.</p>
-            </div>
-            <Link href="/upload">
-              <Button>Upload New Resource</Button>
-            </Link>
-          </div>
-
-          <div className="my-6 space-y-4">
-            <form onSubmit={handleSearch} className="flex flex-col gap-4 md:flex-row">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search resources..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+      <div className="container max-w-6xl mx-auto py-8 px-4">
+        <Card className="border shadow-md bg-white">
+          <CardHeader className="border-b bg-slate-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-3xl font-bold tracking-tight text-slate-800">Resource Management</CardTitle>
+                <CardDescription className="text-slate-600">Manage all resources in the repository.</CardDescription>
               </div>
-              <Select value={filters.type} onValueChange={(value) => handleFilterChange("type", value)}>
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="past-exam">Past Exams</SelectItem>
-                  <SelectItem value="mini-project">Mini Projects</SelectItem>
-                  <SelectItem value="final-project">Final Year Projects</SelectItem>
-                  <SelectItem value="thesis">Theses</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filters.department} onValueChange={(value) => handleFilterChange("department", value)}>
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {departments.map((department) => (
-                    <SelectItem key={department} value={department}>
-                      {department}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={filters.status} onValueChange={(value) => handleFilterChange("status", value)}>
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="flex gap-2">
-                <Button type="submit">Search</Button>
-                <Button type="button" variant="outline" onClick={resetFilters}>
-                  Reset
+              <Link href="/upload">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload New Resource
                 </Button>
-              </div>
-            </form>
-          </div>
-
-          {resources.length > 0 ? (
-            <DataTable
-              data={resources}
-              columns={[
-                { header: "Title", accessorKey: "title" },
-                {
-                  header: "Type",
-                  accessorKey: "type",
-                  cell: (info) => getResourceTypeName(info.getValue()),
-                },
-                { header: "Department", accessorKey: "department" },
-                {
-                  header: "Uploaded By",
-                  accessorKey: "uploadedByName",
-                  cell: (info) => info.getValue() || "Unknown",
-                },
-                {
-                  header: "Status",
-                  accessorKey: "status",
-                  cell: (info) => (
-                    <Badge
-                      variant={
-                        info.getValue() === "approved"
-                          ? "success"
-                          : info.getValue() === "rejected"
-                            ? "destructive"
-                            : "outline"
-                      }
-                    >
-                      {info.getValue()}
-                    </Badge>
-                  ),
-                },
-                {
-                  header: "Actions",
-                  cell: (info) => (
-                    <div className="flex gap-2">
-                      <Link href={`/resources/${info.row.original.id}`}>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Link href={`/resources/${info.row.original.id}/download`} passHref target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" size="sm" asChild>
-                            <Download className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteResource(info.row.original.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No resources found</h3>
-              <p className="text-muted-foreground mt-2">
-                Try adjusting your search or filters to find what you're looking for.
-              </p>
+              </Link>
             </div>
-          )}
-        </main>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <form
+                onSubmit={handleSearch}
+                className="flex flex-col gap-4 md:flex-row bg-white p-4 rounded-lg shadow-sm border"
+              >
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    placeholder="Search resources..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+                <Select value={filters.type} onValueChange={(value) => handleFilterChange("type", value)}>
+                  <SelectTrigger className="w-full md:w-[180px] border-slate-300">
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="past-exam">Past Exams</SelectItem>
+                    <SelectItem value="mini-project">Mini Projects</SelectItem>
+                    <SelectItem value="final-project">Final Year Projects</SelectItem>
+                    <SelectItem value="thesis">Theses</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filters.department} onValueChange={(value) => handleFilterChange("department", value)}>
+                  <SelectTrigger className="w-full md:w-[180px] border-slate-300">
+                    <SelectValue placeholder="All Departments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {departments.map((department) => (
+                      <SelectItem key={department} value={department}>
+                        {department}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={filters.status} onValueChange={(value) => handleFilterChange("status", value)}>
+                  <SelectTrigger className="w-full md:w-[180px] border-slate-300">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex gap-2">
+                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
+                    Search
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={resetFilters}
+                    className="border-slate-300 text-slate-700 hover:bg-slate-100 cursor-pointer"
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </form>
+
+              <div className="bg-white rounded-lg shadow-sm border">
+                {resources.length > 0 ? (
+                  <DataTable
+                    data={resources}
+                    columns={[
+                      {
+                        header: "Title",
+                        accessorKey: "title",
+                        cell: (info) => <span className="font-medium text-slate-900">{info.getValue()}</span>,
+                      },
+                      {
+                        header: "Type",
+                        accessorKey: "type",
+                        cell: (info) => (
+                          <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-medium">
+                            {getResourceTypeName(info.getValue())}
+                          </span>
+                        ),
+                      },
+                      {
+                        header: "Department",
+                        accessorKey: "department",
+                        cell: (info) => <span className="text-slate-700">{info.getValue()}</span>,
+                      },
+                      {
+                        header: "Uploaded By",
+                        accessorKey: "uploadedByName",
+                        cell: (info) => <span className="text-slate-700">{info.getValue() || "Unknown"}</span>,
+                      },
+                      {
+                        header: "Status",
+                        accessorKey: "status",
+                        cell: (info) => (
+                          <span
+                            className={`px-2 py-1 rounded-md text-xs font-medium border ${getStatusColor(
+                              info.getValue(),
+                            )}`}
+                          >
+                            {info.getValue()}
+                          </span>
+                        ),
+                      },
+                      {
+                        header: "Actions",
+                        cell: (info) => (
+                          <div className="flex gap-2">
+                            <Link href={`/resources/${info.row.original.id}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-slate-200 hover:bg-slate-50 hover:text-blue-700"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
+                            <Link
+                              href={`/resources/${info.row.original.id}/download`}
+                              passHref
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-slate-200 hover:bg-slate-50 hover:text-blue-700"
+                                asChild
+                              >
+                                <div>
+                                  <Download className="h-4 w-4" />
+                                </div>
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 border border-red-200"
+                              onClick={() => handleDeleteResource(info.row.original.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ),
+                      },
+                    ]}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="rounded-full bg-slate-100 p-4 mb-4">
+                      <FileText className="h-12 w-12 text-slate-500" />
+                    </div>
+                    <h3 className="text-lg font-medium text-slate-800">No resources found</h3>
+                    <p className="text-slate-500 mt-2 max-w-md">
+                      Try adjusting your search or filters to find what you're looking for.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

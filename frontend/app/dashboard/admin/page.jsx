@@ -12,11 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { BookOpen, FileText, LogOut, Search, User, Users, Plus, Pencil, Trash2, Shield, Activity } from 'lucide-react'
+import { BookOpen, FileText, LogOut, Search, User, Users, Plus, Pencil, Trash2, Shield, Activity } from "lucide-react"
 import DashboardNav from "@/components/dashboard-nav"
 import DataTable from "@/components/data-table"
 import DashboardHeader from "@/components/dashboard-header"
 import { Textarea } from "@/components/ui/textarea"
+import AISummaryButton from "@/components/ai-summary-button"
 
 const AdminDashboard = () => {
   const router = useRouter()
@@ -283,9 +284,9 @@ const AdminDashboard = () => {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status: "approved",
-          approvalReason: approvalReason 
+          approvalReason: approvalReason,
         }),
       })
 
@@ -426,19 +427,25 @@ const AdminDashboard = () => {
         <main className="flex w-full flex-col overflow-hidden">
           <div className="flex items-center justify-between py-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-blue-800">
-                {getGreeting()}, Administrator
-              </h1>
+              <h1 className="text-3xl font-bold tracking-tight text-blue-800">{getGreeting()}, Administrator</h1>
               <p className="text-blue-600">Manage users, resources, and system settings.</p>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/profile">
-                <Button variant="outline" size="icon" className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                >
                   <User className="h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/logout">
-                <Button variant="outline" size="icon" className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                >
                   <LogOut className="h-4 w-4" />
                 </Button>
               </Link>
@@ -474,7 +481,9 @@ const AdminDashboard = () => {
             </Card>
             <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-blue-900">Active Users</CardTitle>
+                <CardTitle className="text-sm font-medium bg-white cursor-pointer text-blue-900">
+                  Active Users
+                </CardTitle>
                 <Activity className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
@@ -494,16 +503,16 @@ const AdminDashboard = () => {
                 />
               </div>
               {activeTab === "users" && (
-                <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+                <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen} className="bg-white">
                   <DialogTrigger asChild>
-                    <Button className="bg-blue-600 hover:bg-blue-700 gap-1">
+                    <Button className="bg-blue-600 hover:bg-blue-700 gap-1 text-white">
                       <Plus className="h-4 w-4" />
                       Add User
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="bg-blue-600 text-white">
                     <DialogHeader>
-                      <DialogTitle>Add New User</DialogTitle>
+                      <DialogTitle className="text-white bg-blue-600 cursor-pointer">Add New User</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleAddUser} className="space-y-4 py-4">
                       <div className="grid grid-cols-2 gap-4">
@@ -544,12 +553,18 @@ const AdminDashboard = () => {
                             onValueChange={(value) => setNewUser({ ...newUser, role: value })}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select role" />
+                              <SelectValue placeholder="Select role" className="cursor-pointer" />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="student">Student</SelectItem>
-                              <SelectItem value="supervisor">Supervisor</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
+                            <SelectContent className="bg-white text-blue-800 cursor-pointer">
+                              <SelectItem className="cursor-pointer" value="student">
+                                Student
+                              </SelectItem>
+                              <SelectItem className="cursor-pointer" value="supervisor">
+                                Supervisor
+                              </SelectItem>
+                              <SelectItem className="cursor-pointer" value="admin">
+                                Admin
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -593,7 +608,7 @@ const AdminDashboard = () => {
                         />
                       </div>
                       <DialogFooter>
-                        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                        <Button type="submit" className="bg-blue-600 hover:bg-blue-700 cursor-pointer text-white">
                           Create User
                         </Button>
                       </DialogFooter>
@@ -605,9 +620,18 @@ const AdminDashboard = () => {
           </div>
           <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList className="bg-blue-100">
-              <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Users</TabsTrigger>
-              <TabsTrigger value="resources" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">Resources</TabsTrigger>
-              <TabsTrigger value="pending" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white">Pending Approvals</TabsTrigger>
+              <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                Users
+              </TabsTrigger>
+              <TabsTrigger
+                value="resources"
+                className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white"
+              >
+                Resources
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+                Pending Approvals
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="users" className="space-y-4">
               <div className="bg-white rounded-lg shadow-md p-4">
@@ -639,7 +663,11 @@ const AdminDashboard = () => {
                       accessorKey: "isActive",
                       cell: (info) => (
                         <Badge
-                          className={info.getValue() ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200" : "bg-rose-100 text-rose-800 hover:bg-rose-200"}
+                          className={
+                            info.getValue()
+                              ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                              : "bg-rose-100 text-rose-800 hover:bg-rose-200"
+                          }
                         >
                           {info.getValue() ? "Active" : "Inactive"}
                         </Badge>
@@ -666,14 +694,18 @@ const AdminDashboard = () => {
                           <Button
                             variant={info.row.original.isActive ? "destructive" : "outline"}
                             size="sm"
-                            className={info.row.original.isActive ? "bg-rose-600 hover:bg-rose-700" : "border-slate-300 text-slate-700 hover:bg-slate-50"}
+                            className={
+                              info.row.original.isActive
+                                ? "bg-rose-600 hover:bg-rose-700"
+                                : "border-slate-300 text-slate-700 hover:bg-slate-50"
+                            }
                             onClick={() => handleToggleUserStatus(info.row.original.id, info.row.original.isActive)}
                           >
                             {info.row.original.isActive ? "Deactivate" : "Activate"}
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="border-rose-300 text-rose-700 hover:bg-rose-50"
                             onClick={() => handleDeleteUser(info.row.original.id)}
                           >
@@ -689,7 +721,7 @@ const AdminDashboard = () => {
               {/* Edit User Dialog */}
               {selectedUser && (
                 <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-                  <DialogContent>
+                  <DialogContent className="bg-blue-800 text-white">
                     <DialogHeader>
                       <DialogTitle>Edit User</DialogTitle>
                     </DialogHeader>
@@ -713,10 +745,16 @@ const AdminDashboard = () => {
                             <SelectTrigger>
                               <SelectValue placeholder="Select role" />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="student">Student</SelectItem>
-                              <SelectItem value="supervisor">Supervisor</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
+                            <SelectContent className="bg-white text-blue-800 cursor-pointer">
+                              <SelectItem className="cursor-pointer" value="student">
+                                Student
+                              </SelectItem>
+                              <SelectItem className="cursor-pointer" value="supervisor">
+                                Supervisor
+                              </SelectItem>
+                              <SelectItem className="cursor-pointer" value="admin">
+                                Admin
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -739,7 +777,7 @@ const AdminDashboard = () => {
                         />
                       </div>
                       <DialogFooter>
-                        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                        <Button type="submit" className="bg-blue-600 hover:bg-blue-700 cursor-pointer">
                           Update User
                         </Button>
                       </DialogFooter>
@@ -793,10 +831,15 @@ const AdminDashboard = () => {
                       cell: (info) => (
                         <div className="flex gap-2">
                           <Link href={`/resources/${info.row.original.id}`}>
-                            <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                            >
                               View
                             </Button>
                           </Link>
+                          <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
                           <Button
                             variant="outline"
                             size="sm"
@@ -842,13 +885,18 @@ const AdminDashboard = () => {
                       cell: (info) => (
                         <div className="flex gap-2">
                           <Link href={`/resources/${info.row.original.id}`}>
-                            <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                            >
                               View
                             </Button>
                           </Link>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="bg-emerald-600 text-white hover:bg-emerald-700"
                             onClick={() => {
                               setSelectedResourceForApproval(info.row.original)
@@ -881,10 +929,13 @@ const AdminDashboard = () => {
           <DialogHeader>
             <DialogTitle>Approve Resource</DialogTitle>
           </DialogHeader>
-          <form onSubmit={(e) => {
-            e.preventDefault()
-            handleApproveResource(selectedResourceForApproval?.id)
-          }} className="space-y-4 py-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleApproveResource(selectedResourceForApproval?.id)
+            }}
+            className="space-y-4 py-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="approvalReason">Reason for Approval</Label>
               <Textarea

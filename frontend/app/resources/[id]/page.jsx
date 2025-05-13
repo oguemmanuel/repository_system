@@ -5,7 +5,6 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import DashboardHeader from "@/components/dashboard-header"
-import DashboardNav from "@/components/dashboard-nav"
 import ResourcePreview from "@/components/resource-preview"
 
 export default function ResourceDetailPage({ params }) {
@@ -120,10 +119,7 @@ export default function ResourceDetailPage({ params }) {
   return (
     <div className="flex min-h-screen flex-col">
       <DashboardHeader />
-      <div className="container flex-1 items-start md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
-        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
-          <DashboardNav isSupervisor={user?.role === "supervisor"} />
-        </aside>
+      <div className="px-4 py-6">
         <main className="flex w-full flex-col overflow-hidden py-6">
           <h1 className="text-3xl font-bold tracking-tight mb-6">Resource Details</h1>
           <ResourcePreview resourceId={resourceId} onApprove={handleApprove} onReject={handleReject} />
