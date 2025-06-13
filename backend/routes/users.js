@@ -533,24 +533,71 @@ router.delete("/:id", isAuthenticated, isAdmin, async (req, res) => {
 })
 
 // Get all departments
+// Get all departments - Updated to not require authentication
 router.get("/departments/all", async (req, res) => {
   try {
+    console.log("=== Fetching departments from database ===")
+    
+    // Query to get distinct departments from users table
     const [departments] = await db.query(
-      "SELECT DISTINCT department FROM users WHERE department IS NOT NULL ORDER BY department",
+      `SELECT DISTINCT department 
+       FROM users 
+       WHERE department IS NOT NULL 
+       AND department != '' 
+       AND department != 'null'
+       ORDER BY department ASC`
     )
 
-    const departmentList = departments.map((item) => item.department).filter(Boolean)
+    console.log("Raw departments query result:", departments)
 
-    res.status(200).json({
-      success: true,
-      departments: departmentList,
-    })
+    // Extract department names from the result
+    const departmentList = departments
+      .map((row) => row.department)
+      .filter((dept) => dept && dept.trim() !== '')
+
+    console.log("Processed department list:", departmentList)
+
+    // Always return a successful response with departments
+    if (departmentList.length > 0) {
+      console.log("Returning departments from database:", departmentList)
+      return res.status(200).json({
+        success: true,
+        departments: departmentList,
+        source: "database"
+      })
+    } else {
+      // If no departments in database, return some defaults
+      const defaultDepartments = [
+        "Computing and Information Sciences",
+        "Economics and Business Administration",
+        "Engineering", 
+        "Natural Sciences",
+        "Social Sciences",
+        "Arts and Humanities"
+      ]
+      
+      console.log("No departments in database, returning defaults:", defaultDepartments)
+      return res.status(200).json({
+        success: true,
+        departments: defaultDepartments,
+        source: "default"
+      })
+    }
+
   } catch (error) {
     console.error("Error fetching departments:", error)
-    res.status(500).json({
-      success: false,
-      message: "Error fetching departments",
-      error: error.message,
+    
+    // Even on error, return some default departments
+    // const defaultDepartments = [
+    //   "Computing and Information Sciences", 
+    //   "Economics and Business Administration",
+    // ]
+    
+    res.status(200).json({
+      success: true,
+      // departments: defaultDepartments,
+      source: "error_fallback",
+      error: error.message
     })
   }
 })

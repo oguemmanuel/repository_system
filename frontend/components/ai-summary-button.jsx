@@ -46,13 +46,13 @@ export default function AISummaryButton({ resourceId, title }) {
           variant="outline"
           className="bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 border border-blue-200 text-blue-600 hover:text-blue-700 shadow-sm"
         >
-          <Sparkles className="mr-2 h-4 w-4 cursor-pointer" />
+          <Sparkles className="mr-2 h-3 w-4 cursor-pointer" />
           AI Summary
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl bg-white rounded-lg shadow-xl">
         <DialogHeader className="border-b border-gray-100 pb-4">
-          <DialogTitle className="text-xl font-semibold text-gray-800 flex items-center">
+          <DialogTitle className="text-md font-semibold text-gray-800 flex items-center">
             <Sparkles className="mr-2 h-5 w-5 text-blue-500 cursor-pointer" />
             AI Summary: {title}
           </DialogTitle>

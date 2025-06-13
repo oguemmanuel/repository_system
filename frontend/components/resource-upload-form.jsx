@@ -17,6 +17,7 @@ const ResourceUploadForm = ({ user }) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [departments, setDepartments] = useState([])
+  const [loadingDepartments, setLoadingDepartments] = useState(true)
   const [supervisors, setSupervisors] = useState([])
   const [loadingSupervisors, setLoadingSupervisors] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
@@ -54,39 +55,71 @@ const ResourceUploadForm = ({ user }) => {
   // Fetch departments on component mount
   useEffect(() => {
     const fetchDepartments = async () => {
+      setLoadingDepartments(true)
       try {
+        console.log("Fetching departments...")
         const response = await fetch("http://localhost:5000/api/users/departments/all", {
+          method: "GET",
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
         })
+
+        console.log("Department fetch response status:", response.status)
+
         if (response.ok) {
           const data = await response.json()
-          setDepartments(data.departments || [])
+          console.log("Department fetch response data:", data)
+
+          if (data.success && Array.isArray(data.departments) && data.departments.length > 0) {
+            console.log("Setting departments from API:", data.departments)
+            setDepartments(data.departments)
+            console.log("Departments state should now be:", data.departments)
+          } else {
+            console.warn("No departments returned from API or invalid format:", data)
+            // Use fallback departments
+            const fallbackDepartments = [
+              "Computing and Information Sciences",
+              "Economics and Business Administration",
+              "Engineering",
+              "Natural Sciences",
+              "Social Sciences",
+              "Arts and Humanities",
+            ]
+            console.log("Using fallback departments:", fallbackDepartments)
+            setDepartments(fallbackDepartments)
+          }
         } else {
+          console.error("Failed to fetch departments, status:", response.status)
+          const errorText = await response.text()
+          console.error("Error response:", errorText)
+
           // Fallback departments if API fails
           setDepartments([
-            "Computer Science",
-            "Information Technology",
-            "Business Administration",
-            "Economics",
-            "Mathematics",
+            "Computing and Information Sciences",
+            "Economics and Business Administration",
             "Engineering",
-            "Religious Studies",
-            "Education",
+            "Natural Sciences",
+            "Social Sciences",
+            "Arts and Humanities",
           ])
+          toast.error("Could not load departments from server. Using default list.")
         }
       } catch (error) {
         console.error("Error fetching departments:", error)
         // Fallback departments on error
         setDepartments([
-          "Computer Science",
-          "Information Technology",
-          "Business Administration",
-          "Economics",
-          "Mathematics",
+          "Computing and Information Sciences",
+          "Economics and Business Administration",
           "Engineering",
-          "Religious Studies",
-          "Education",
+          "Natural Sciences",
+          "Social Sciences",
+          "Arts and Humanities",
         ])
+        toast.error("Error loading departments. Using default list.")
+      } finally {
+        setLoadingDepartments(false)
       }
     }
 
@@ -105,10 +138,15 @@ const ResourceUploadForm = ({ user }) => {
       setSupervisors([]) // Clear previous supervisors
 
       try {
+        console.log("Fetching supervisors for department:", formData.department)
         const response = await fetch(
           `http://localhost:5000/api/users/supervisors/available?department=${encodeURIComponent(formData.department)}`,
           {
+            method: "GET",
             credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
         )
 
@@ -117,9 +155,10 @@ const ResourceUploadForm = ({ user }) => {
         }
 
         const data = await response.json()
+        console.log("Supervisors fetch response:", data)
 
         // The backend returns { success: true, supervisors: [...] }
-        if (data.success && data.supervisors) {
+        if (data.success && Array.isArray(data.supervisors)) {
           setSupervisors(
             data.supervisors.map((supervisor) => ({
               id: supervisor.id,
@@ -377,6 +416,7 @@ const ResourceUploadForm = ({ user }) => {
                 <div className="space-y-2">
                   <Label htmlFor="department" className={fieldLabelClasses}>
                     Department <span className="text-red-500 ml-1">*</span>
+                    {loadingDepartments && <Loader2 className="ml-2 h-4 w-4 inline-block animate-spin" />}
                   </Label>
                   <Select
                     value={formData.department}
@@ -386,24 +426,50 @@ const ResourceUploadForm = ({ user }) => {
                       handleSelectChange("supervisorId", "")
                     }}
                     required
-                    disabled={loadingSupervisors}
+                    disabled={loadingDepartments}
                   >
                     <SelectTrigger
                       className={`${selectTriggerClasses} border-indigo-200 dark:border-indigo-800 hover:border-indigo-300 dark:hover:border-indigo-700`}
                     >
-                      <SelectValue placeholder="Select department" />
+                      {loadingDepartments ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading departments...
+                        </span>
+                      ) : (
+                        <SelectValue placeholder="Select department" />
+                      )}
                     </SelectTrigger>
                     <SelectContent className="border-2 border-indigo-200 dark:border-indigo-800 rounded-lg shadow-lg">
-                      {departments.map((department) => (
-                        <SelectItem key={department} value={department} className="py-2.5 text-base">
-                          {department}
+                      {departments.length > 0 ? (
+                        departments.map((department) => (
+                          <SelectItem key={department} value={department} className="py-2.5 text-base">
+                            {department}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-departments" disabled className="py-2.5 text-base">
+                          No departments available
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 ml-1">
                     Select the department this resource belongs to
                   </p>
+
+                  {/* Show warning if no departments found */}
+                  {departments.length === 0 && !loadingDepartments && (
+                    <Alert
+                      variant="destructive"
+                      className="mt-2 border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30"
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        No departments found. Please contact administration or try refreshing the page.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
 
                 {/* Supervisor Select - Only shown for final projects by students */}
@@ -638,7 +704,7 @@ const ResourceUploadForm = ({ user }) => {
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || loadingDepartments}
               className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 py-6 rounded-xl text-base font-medium shadow-md text-white"
             >
               {loading ? (

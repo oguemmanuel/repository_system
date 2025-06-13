@@ -430,56 +430,66 @@ const PublicSearch = () => {
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {resources.map((resource) => (
-              <Card key={resource.id} className="overflow-hidden bg-blue-800 shadow-md">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg line-clamp-2 text-white">{resource.title}</CardTitle>
-                    {getResourceTypeIcon(resource.type)}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-3 text-white">{resource.description}</p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Badge variant="outline" className="text-white">
-                      {getResourceTypeName(resource.type)}
-                    </Badge>
-                    <Badge variant="outline" className="text-white">
-                      {resource.department}
-                    </Badge>
-                    {resource.year && (
-                      <Badge variant="outline" className="text-white">
-                        {resource.year}
-                      </Badge>
-                    )}
-                  </div>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-3 border-t bg-muted/50 px-6 py-3">
-                  <div className="flex justify-between items-center w-full">
-                    <div className="text-xs text-muted-foreground text-white">
-                      By {resource.uploadedByName || "Unknown"}
-                    </div>
-                    <Link href={`/resources/${resource.id}`}>
-                      <Button variant="ghost" size="sm" className="text-white cursor-pointer">
-                        View Details
-                      </Button>
-                    </Link>
-                  </div>
-                  <div className="flex justify-between items-center w-full">
-                    <div className="flex-1">
-                      <AISummaryButton resourceId={resource.id} title={resource.title} />
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-white hover:bg-blue-700 flex items-center gap-1"
-                      onClick={() => openComments(resource.id)}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      <span>{commentsByResource[resource.id]?.length || 0} Comments</span>
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
+              <Card key={resource.id} className="overflow-hidden bg-blue-800 shadow-md max-w-sm">
+            <CardHeader className="pb-2 px-4 pt-4">
+              <div className="flex justify-between items-start gap-2">
+                <CardTitle className="text-base font-semibold line-clamp-2 text-white leading-tight">
+                  {resource.title}
+                </CardTitle>
+                <div className="flex-shrink-0">
+                  {getResourceTypeIcon(resource.type)}
+                </div>
+              </div>
+            </CardHeader>
+  
+  <CardContent className="px-4 pb-2">
+    <p className="text-xs text-white/80 line-clamp-2 leading-relaxed mb-3">
+      {resource.description}
+    </p>
+    
+    <div className="flex flex-wrap gap-1 mb-2">
+      <Badge variant="outline" className="text-xs px-2 py-0.5 text-white border-white/30">
+        {getResourceTypeName(resource.type)}
+      </Badge>
+      <Badge variant="outline" className="text-xs px-2 py-0.5 text-white border-white/30">
+        {resource.department}
+      </Badge>
+      {resource.year && (
+        <Badge variant="outline" className="text-xs px-2 py-0.5 text-white border-white/30">
+          {resource.year}
+        </Badge>
+      )}
+    </div>
+  </CardContent>
+  
+  <CardFooter className="flex flex-col gap-2 border-t border-white/20 bg-blue-900/30 px-4 py-3">
+    <div className="flex justify-between items-center w-full">
+      <span className="text-xs text-white/70 truncate">
+        By {resource.uploadedByName || "Unknown"}
+      </span>
+      <Link href={`/resources/${resource.id}`}>
+        <Button variant="ghost" size="sm" className="text-xs h-7 px-2 text-white hover:bg-blue-700">
+          View Details
+        </Button>
+      </Link>
+    </div>
+    
+    <div className="flex gap-2 w-full">
+      <div className="flex-1">
+        <AISummaryButton resourceId={resource.id} title={resource.title} />
+      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-xs h-7 px-2 text-white hover:bg-blue-700 flex items-center gap-1"
+        onClick={() => openComments(resource.id)}
+      >
+        <MessageCircle className="h-3 w-3" />
+        <span>{commentsByResource[resource.id]?.length || 0}</span>
+      </Button>
+    </div>
+  </CardFooter>
+</Card>
             ))}
           </div>
 
