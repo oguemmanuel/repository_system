@@ -14,25 +14,33 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export default function ResourceDetailPage({ params }) {
   const resourceId = params?.resourceId;
+
   const [resource, setResource] = useState(null);
-  const { data: session, status } = useSession();
-  const user = session?.user;
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [approvalReason, setApprovalReason] = useState("");
 
+  const router = useRouter();
+
+  // ✅ SAFE NEXT-AUTH HANDLING (NO BUILD CRASH)
+  const sessionData = useSession() || {};
+  const session = sessionData?.data || null;
+  const status = sessionData?.status || "loading";
+  const user = session?.user;
+
+  // =========================
+  // FETCH RESOURCE
+  // =========================
   useEffect(() => {
+    if (!resourceId) return;
+
     const fetchResource = async () => {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}`,
-          {
-            credentials: "include",
-          },
+          { credentials: "include" },
         );
 
         if (!response.ok) throw new Error("Failed to fetch resource");
@@ -40,28 +48,32 @@ export default function ResourceDetailPage({ params }) {
         const data = await response.json();
         setResource(data);
       } catch (error) {
-        console.error("Error fetching resource:", error);
-        toast.error("Failed to fetch resource. Please try again.");
+        console.error(error);
+        toast.error("Failed to fetch resource");
       }
     };
 
-    if (resourceId) fetchResource();
+    fetchResource();
   }, [resourceId]);
 
+  // =========================
+  // AUTH GUARD (SAFE)
+  // =========================
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/login");
     }
   }, [status, router]);
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
+  // =========================
+  // LOADING STATES
+  // =========================
+  if (status === "loading") return <div>Loading...</div>;
+  if (!resource) return <div>Loading resource details...</div>;
 
-  if (!resource) {
-    return <div>Loading resource details...</div>;
-  }
-
+  // =========================
+  // APPROVE
+  // =========================
   const handleApprove = async () => {
     try {
       const response = await fetch(
@@ -69,7 +81,9 @@ export default function ResourceDetailPage({ params }) {
         {
           method: "PATCH",
           credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             status: "approved",
             approvalReason,
@@ -91,6 +105,9 @@ export default function ResourceDetailPage({ params }) {
     }
   };
 
+  // =========================
+  // REJECT
+  // =========================
   const handleReject = async () => {
     try {
       const response = await fetch(
@@ -98,7 +115,9 @@ export default function ResourceDetailPage({ params }) {
         {
           method: "PATCH",
           credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ status: "rejected" }),
         },
       );
@@ -117,6 +136,9 @@ export default function ResourceDetailPage({ params }) {
     }
   };
 
+  // =========================
+  // UI
+  // =========================
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">{resource.title}</h1>
@@ -145,6 +167,7 @@ export default function ResourceDetailPage({ params }) {
         <strong>Status:</strong> {resource.status}
       </p>
 
+      {/* ACTIONS */}
       {resource.status === "pending" && user?.role === "supervisor" && (
         <div className="flex gap-4 mt-4">
           <Dialog open={open} onOpenChange={setOpen}>
