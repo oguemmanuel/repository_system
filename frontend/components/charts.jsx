@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   BarChart as RechartsBarChart,
@@ -14,10 +14,21 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+} from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d"]
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#8884d8",
+  "#82ca9d",
+];
 
 const BarChart = ({ data }) => {
   return (
@@ -49,25 +60,22 @@ const BarChart = ({ data }) => {
         </RechartsBarChart>
       </ResponsiveContainer>
     </ChartContainer>
-  )
-}
+  );
+};
 
 const LineChart = ({ data }) => {
   // Extract all keys except 'name' to use as data keys
-  const dataKeys = Object.keys(data[0]).filter((key) => key !== "name")
+  const dataKeys = Object.keys(data[0]).filter((key) => key !== "name");
 
   return (
     <ChartContainer
-      config={dataKeys.reduce(
-        (acc, key, index) => {
-          acc[key] = {
-            label: key,
-            color: `hsl(var(--chart-${index + 1}))`,
-          }
-          return acc
-        },
-        {}
-      )}
+      config={dataKeys.reduce((acc, key, index) => {
+        acc[key] = {
+          label: key,
+          color: `hsl(var(--chart-${index + 1}))`,
+        };
+        return acc;
+      }, {})}
       className="h-full w-full"
     >
       <ResponsiveContainer width="100%" height="100%">
@@ -97,8 +105,8 @@ const LineChart = ({ data }) => {
         </RechartsLineChart>
       </ResponsiveContainer>
     </ChartContainer>
-  )
-}
+  );
+};
 
 const PieChart = ({ data }) => {
   return (
@@ -109,7 +117,9 @@ const PieChart = ({ data }) => {
           cx="50%"
           cy="50%"
           labelLine={false}
-          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+          label={({ name, percent }) =>
+            `${name}: ${(percent * 100).toFixed(0)}%`
+          }
           outerRadius={80}
           fill="#8884d8"
           dataKey="value"
@@ -122,7 +132,7 @@ const PieChart = ({ data }) => {
         <Legend />
       </RechartsPieChart>
     </ResponsiveContainer>
-  )
-}
+  );
+};
 
-export default { BarChart, LineChart, PieChart }
+export { BarChart, LineChart, PieChart };
