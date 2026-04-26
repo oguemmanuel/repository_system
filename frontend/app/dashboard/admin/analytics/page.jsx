@@ -1,16 +1,28 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { BarChart, LineChart, PieChart } from "@/components/charts"
-import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardNav } from "@/components/dashboard-nav"
-import { DownloadCloud, Eye, FileText, Users } from "lucide-react"
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { BarChart, LineChart, PieChart } from "@/components/charts";
+import DashboardHeader from "@/components/dashboard-header";
+import DashboardNav from "@/components/dashboard-nav";
+import { DownloadCloud, Eye, FileText, Users } from "lucide-react";
 
 const AnalyticsDashboard = () => {
-  const [timeRange, setTimeRange] = useState("30days")
+  const [timeRange, setTimeRange] = useState("30days");
 
   // Mock data for charts
   const resourceViewsData = [
@@ -20,7 +32,7 @@ const AnalyticsDashboard = () => {
     { name: "Apr", "Past Exams": 220, Projects: 150, Theses: 90 },
     { name: "May", "Past Exams": 280, Projects: 180, Theses: 110 },
     { name: "Jun", "Past Exams": 310, Projects: 200, Theses: 130 },
-  ]
+  ];
 
   const resourceDownloadsData = [
     { name: "Jan", "Past Exams": 80, Projects: 50, Theses: 20 },
@@ -29,19 +41,19 @@ const AnalyticsDashboard = () => {
     { name: "Apr", "Past Exams": 150, Projects: 110, Theses: 60 },
     { name: "May", "Past Exams": 190, Projects: 140, Theses: 80 },
     { name: "Jun", "Past Exams": 220, Projects: 160, Theses: 90 },
-  ]
+  ];
 
   const resourceTypeData = [
     { name: "Past Exams", value: 310 },
     { name: "Projects", value: 200 },
     { name: "Theses", value: 130 },
-  ]
+  ];
 
   const departmentDistributionData = [
     { name: "Computer Science", value: 250 },
     { name: "Mathematics", value: 150 },
     { name: "Engineering", value: 240 },
-  ]
+  ];
 
   const userActivityData = [
     { name: "Mon", "Active Users": 45 },
@@ -51,7 +63,7 @@ const AnalyticsDashboard = () => {
     { name: "Fri", "Active Users": 58 },
     { name: "Sat", "Active Users": 48 },
     { name: "Sun", "Active Users": 40 },
-  ]
+  ];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -63,8 +75,12 @@ const AnalyticsDashboard = () => {
         <main className="flex w-full flex-col overflow-hidden">
           <div className="flex items-center justify-between py-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
-              <p className="text-muted-foreground">Monitor repository usage and user engagement.</p>
+              <h1 className="text-3xl font-bold tracking-tight">
+                Analytics Dashboard
+              </h1>
+              <p className="text-muted-foreground">
+                Monitor repository usage and user engagement.
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Select value={timeRange} onValueChange={setTimeRange}>
@@ -84,42 +100,58 @@ const AnalyticsDashboard = () => {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Views
+                </CardTitle>
                 <Eye className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">2,845</div>
-                <p className="text-xs text-muted-foreground">+18.2% from last month</p>
+                <p className="text-xs text-muted-foreground">
+                  +18.2% from last month
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Downloads</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Downloads
+                </CardTitle>
                 <DownloadCloud className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">1,257</div>
-                <p className="text-xs text-muted-foreground">+12.5% from last month</p>
+                <p className="text-xs text-muted-foreground">
+                  +12.5% from last month
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Active Users
+                </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">358</div>
-                <p className="text-xs text-muted-foreground">+7.4% from last month</p>
+                <p className="text-xs text-muted-foreground">
+                  +7.4% from last month
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">New Uploads</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  New Uploads
+                </CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">85</div>
-                <p className="text-xs text-muted-foreground">+24.3% from last month</p>
+                <p className="text-xs text-muted-foreground">
+                  +24.3% from last month
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -135,7 +167,9 @@ const AnalyticsDashboard = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle>Resource Views</CardTitle>
-                    <CardDescription>Number of views per resource type over time</CardDescription>
+                    <CardDescription>
+                      Number of views per resource type over time
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="h-80">
                     <LineChart data={resourceViewsData} />
@@ -144,7 +178,9 @@ const AnalyticsDashboard = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle>Resource Downloads</CardTitle>
-                    <CardDescription>Number of downloads per resource type over time</CardDescription>
+                    <CardDescription>
+                      Number of downloads per resource type over time
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="h-80">
                     <LineChart data={resourceDownloadsData} />
@@ -157,7 +193,9 @@ const AnalyticsDashboard = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle>Resource Type Distribution</CardTitle>
-                    <CardDescription>Distribution of resources by type</CardDescription>
+                    <CardDescription>
+                      Distribution of resources by type
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="h-80">
                     <PieChart data={resourceTypeData} />
@@ -166,7 +204,9 @@ const AnalyticsDashboard = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle>Department Distribution</CardTitle>
-                    <CardDescription>Distribution of resources by department</CardDescription>
+                    <CardDescription>
+                      Distribution of resources by department
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="h-80">
                     <PieChart data={departmentDistributionData} />
@@ -178,7 +218,9 @@ const AnalyticsDashboard = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>User Activity</CardTitle>
-                  <CardDescription>Daily active users over the past week</CardDescription>
+                  <CardDescription>
+                    Daily active users over the past week
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="h-80">
                   <BarChart data={userActivityData} />
@@ -189,7 +231,7 @@ const AnalyticsDashboard = () => {
         </main>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AnalyticsDashboard
+export default AnalyticsDashboard;
