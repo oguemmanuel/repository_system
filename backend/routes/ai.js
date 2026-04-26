@@ -17,7 +17,7 @@ async function extractTextFromPDF(filePath) {
       console.error("PDF file not found:", filePath);
       return "";
     }
-    
+
     const dataBuffer = fs.readFileSync(filePath);
     const data = await pdf(dataBuffer);
     return data.text || "";
@@ -35,10 +35,10 @@ const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
 router.get("/cached-summary/:id", async (req, res) => {
   try {
     const resourceId = req.params.id;
-    
+
     // Check if we have a cached summary that's not expired
     const cachedData = summaryCache.get(resourceId);
-    if (cachedData && (Date.now() - cachedData.timestamp < CACHE_EXPIRY)) {
+    if (cachedData && Date.now() - cachedData.timestamp < CACHE_EXPIRY) {
       return res.status(200).json({
         success: true,
         resource: cachedData.resource,
@@ -61,7 +61,7 @@ router.get("/cached-summary/:id", async (req, res) => {
       LEFT JOIN users u3 ON r.supervisorId = u3.id  
       LEFT JOIN resource_metadata rm ON r.id = rm.resourceId  
       WHERE r.id = ? AND r.status = 'approved'`,
-      [resourceId]
+      [resourceId],
     );
 
     if (resources.length === 0) {
@@ -72,18 +72,18 @@ router.get("/cached-summary/:id", async (req, res) => {
     }
 
     const resource = resources[0];
-    
+
     // Extract text from PDF if available
     let documentText = "";
-    if (resource.filePath && resource.filePath.toLowerCase().endsWith('.pdf')) {
+    if (resource.filePath && resource.filePath.toLowerCase().endsWith(".pdf")) {
       documentText = await extractTextFromPDF(resource.filePath);
-      
+
       // Limit document text to avoid exceeding model context limits
       if (documentText.length > 10000) {
         documentText = documentText.substring(0, 10000) + "...";
       }
     }
-    
+
     // Create a prompt for the AI model
     const prompt = `
       Please summarize the following academic project:
@@ -91,16 +91,20 @@ router.get("/cached-summary/:id", async (req, res) => {
       Title: ${resource.title}
       Type: ${resource.type}
       Department: ${resource.department}
-      ${resource.studentName ? `Student: ${resource.studentName}` : ''}
-      ${resource.supervisorName ? `Supervisor: ${resource.supervisorName}` : ''}
-      ${resource.course ? `Course: ${resource.course}` : ''}
-      ${resource.year ? `Year: ${resource.year}` : ''}
+      ${resource.studentName ? `Student: ${resource.studentName}` : ""}
+      ${resource.supervisorName ? `Supervisor: ${resource.supervisorName}` : ""}
+      ${resource.course ? `Course: ${resource.course}` : ""}
+      ${resource.year ? `Year: ${resource.year}` : ""}
       
       Description:
       ${resource.description}
       
-      ${documentText ? `Document Content (excerpt):
-      ${documentText}` : ''}
+      ${
+        documentText
+          ? `Document Content (excerpt):
+      ${documentText}`
+          : ""
+      }
       
       Please provide a concise summary (about 2-3 paragraphs) that explains the main purpose, 
       methodology, and potential applications of this project. Focus on the most important aspects
@@ -108,7 +112,7 @@ router.get("/cached-summary/:id", async (req, res) => {
     `;
 
     // Generate content using Gemini model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
     const summary = result.response.text();
 
@@ -121,7 +125,7 @@ router.get("/cached-summary/:id", async (req, res) => {
       studentName: resource.studentName,
       supervisorName: resource.supervisorName,
     };
-    
+
     summaryCache.set(resourceId, {
       resource: resourceData,
       summary,
@@ -132,7 +136,13 @@ router.get("/cached-summary/:id", async (req, res) => {
     if (req.session && req.session.user) {
       await db.query(
         "INSERT INTO resource_access_logs (resourceId, userId, action, ipAddress, userAgent) VALUES (?, ?, ?, ?, ?)",
-        [resourceId, req.session.user.id, "ai_summarize", req.ip, req.headers["user-agent"]]
+        [
+          resourceId,
+          req.session.user.id,
+          "ai_summarize",
+          req.ip,
+          req.headers["user-agent"],
+        ],
       );
     }
 
