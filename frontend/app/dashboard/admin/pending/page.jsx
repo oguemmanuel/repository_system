@@ -29,7 +29,7 @@ export default function PendingApprovalsPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
         })
 
@@ -59,7 +59,7 @@ export default function PendingApprovalsPage() {
     setLoading(true)
     try {
       // Fetch pending resources
-      const pendingResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/admin", {
+      const pendingResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/admin`, {
         credentials: "include",
       })
 

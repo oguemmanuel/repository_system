@@ -58,7 +58,7 @@ export default function StudentDashboard() {
         }
 
         // Verify with backend
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
         })
 
@@ -95,17 +95,17 @@ export default function StudentDashboard() {
     setLoading(true)
     try {
       // Fetch student's resources
-      const myResourcesResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources/student/my-resources", {
+      const myResourcesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/student/my-resources`, {
         credentials: "include",
       })
 
       // Fetch approved resources
-      const approvedResourcesResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved", {
+      const approvedResourcesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved`, {
         credentials: "include",
       })
 
       // Fetch user analytics
-      const analyticsResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/analytics/user", {
+      const analyticsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/user`, {
         credentials: "include",
       })
 

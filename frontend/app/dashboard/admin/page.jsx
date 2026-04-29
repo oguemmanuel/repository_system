@@ -58,7 +58,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
         })
 
@@ -88,7 +88,7 @@ const AdminDashboard = () => {
     setLoading(true)
     try {
       // Fetch users
-      const usersResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users", {
+      const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
         credentials: "include",
       })
 
@@ -99,7 +99,7 @@ const AdminDashboard = () => {
       }
 
       // Fetch resources
-      const resourcesResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources", {
+      const resourcesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources`, {
         credentials: "include",
       })
 
@@ -110,7 +110,7 @@ const AdminDashboard = () => {
       }
 
       // Fetch pending resources
-      const pendingResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/admin", {
+      const pendingResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/admin`, {
         credentials: "include",
       })
 
@@ -121,7 +121,7 @@ const AdminDashboard = () => {
       }
 
       // Fetch active users count
-      const activeUsersResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users?isActive=true", {
+      const activeUsersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users?isActive=true`, {
         credentials: "include",
       })
 
@@ -140,7 +140,7 @@ const AdminDashboard = () => {
   const handleAddUser = async (e) => {
     e.preventDefault()
     try {
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

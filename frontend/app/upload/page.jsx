@@ -25,7 +25,7 @@ export default function UploadPage() {
         }
 
         // Verify with backend
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
         })
 

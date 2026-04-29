@@ -79,7 +79,7 @@ export default function SupervisorDashboard() {
         }
 
         // Verify with backend
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
         })
 
@@ -112,13 +112,13 @@ export default function SupervisorDashboard() {
     setLoading(true)
     try {
       // Fetch pending approvals
-      const pendingResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/supervisor", {
+      const pendingResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/supervisor`, {
         credentials: "include",
       })
 
       // Fetch approved projects
       const approvedResponse = await fetch(
-        "${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved&supervisorId=" + userData.id,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved&supervisorId=` + userData.id,
         {
           credentials: "include",
         },
@@ -126,14 +126,14 @@ export default function SupervisorDashboard() {
 
       // Fetch rejected projects
       const rejectedResponse = await fetch(
-        "${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=rejected&supervisorId=" + userData.id,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=rejected&supervisorId=` + userData.id,
         {
           credentials: "include",
         },
       )
 
       // Fetch supervisor analytics
-      const analyticsResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/analytics/supervisor", {
+      const analyticsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/supervisor`, {
         credentials: "include",
       })
 

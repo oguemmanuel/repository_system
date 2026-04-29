@@ -58,7 +58,7 @@ const ResourceUploadForm = ({ user }) => {
       setLoadingDepartments(true)
       try {
         console.log("Fetching departments...")
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -277,7 +277,7 @@ const ResourceUploadForm = ({ user }) => {
       // Append file
       formDataToSend.append("file", selectedFile)
 
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources`, {
         method: "POST",
         credentials: "include",
         body: formDataToSend,

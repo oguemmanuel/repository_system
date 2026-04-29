@@ -410,7 +410,7 @@ export default function Home() {
     // Fetch current user from API
     const fetchCurrentUser = async () => {
       try {
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
         });
 
@@ -442,7 +442,7 @@ export default function Home() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
         method: "GET",
         credentials: "include",
       });

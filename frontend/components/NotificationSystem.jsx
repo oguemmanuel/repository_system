@@ -11,7 +11,7 @@ export default function NotificationSystem() {
   // Fetch notifications and unread count
   const fetchNotifications = async () => {
     try {
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/notifications", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications`, {
         method: "GET",
         credentials: "include", // Include cookies for session management
       });
@@ -28,7 +28,7 @@ export default function NotificationSystem() {
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/notifications/unread-count", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/unread-count`, {
         method: "GET",
         credentials: "include", // Include cookies for session management
       });

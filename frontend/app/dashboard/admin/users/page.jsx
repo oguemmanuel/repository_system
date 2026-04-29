@@ -38,7 +38,7 @@ export default function UsersPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
         })
 
@@ -69,7 +69,7 @@ export default function UsersPage() {
     setLoading(true)
     try {
       // Fetch users
-      const usersResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users", {
+      const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
         credentials: "include",
       })
 
@@ -89,7 +89,7 @@ export default function UsersPage() {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all`, {
         credentials: "include",
       })
       if (response.ok) {
@@ -140,7 +140,7 @@ export default function UsersPage() {
         return
       }
 
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

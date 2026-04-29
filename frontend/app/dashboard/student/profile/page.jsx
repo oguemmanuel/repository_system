@@ -61,7 +61,7 @@ export default function StudentProfile() {
         }
 
         // Verify with backend
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
         })
 
@@ -103,7 +103,7 @@ export default function StudentProfile() {
     setLoading(true)
     try {
       // Fetch user analytics
-      const analyticsResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/analytics/user", {
+      const analyticsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/user`, {
         credentials: "include",
       })
 

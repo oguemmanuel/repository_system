@@ -21,7 +21,7 @@ export default function DocumentViewer({ resourceId }) {
 
         // Check if the server is reachable first
         try {
-          const serverCheckResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
+          const serverCheckResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
             method: "HEAD",
             credentials: "include",
           }).catch((e) => {

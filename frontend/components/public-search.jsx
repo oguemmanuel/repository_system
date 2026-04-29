@@ -36,7 +36,7 @@ const PublicSearch = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
         })
 
@@ -56,7 +56,7 @@ const PublicSearch = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all")
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all`)
         if (response.ok) {
           const data = await response.json()
           setDepartments(data.departments || [])
@@ -202,7 +202,7 @@ const PublicSearch = () => {
         if (nameInput) commentorName = nameInput
       }
 
-      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/comments", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
