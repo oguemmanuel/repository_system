@@ -38,7 +38,7 @@ export default function StudentResources() {
         }
 
         // Verify with backend
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           credentials: "include",
         })
 
@@ -75,12 +75,12 @@ export default function StudentResources() {
     setLoading(true)
     try {
       // Fetch student's resources
-      const myResourcesResponse = await fetch("http://localhost:5000/api/resources/student/my-resources", {
+      const myResourcesResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources/student/my-resources", {
         credentials: "include",
       })
 
       // Fetch approved resources
-      const approvedResourcesResponse = await fetch("http://localhost:5000/api/resources?status=approved", {
+      const approvedResourcesResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved", {
         credentials: "include",
       })
 

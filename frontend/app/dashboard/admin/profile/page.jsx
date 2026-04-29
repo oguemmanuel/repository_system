@@ -32,7 +32,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           credentials: "include",
         })
 
@@ -80,7 +80,7 @@ export default function ProfilePage() {
     setSaving(true)
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${user.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -129,7 +129,7 @@ export default function ProfilePage() {
         throw new Error("Password must be at least 6 characters long")
       }
 
-      const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${user.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

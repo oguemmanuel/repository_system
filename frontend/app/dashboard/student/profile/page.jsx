@@ -61,7 +61,7 @@ export default function StudentProfile() {
         }
 
         // Verify with backend
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           credentials: "include",
         })
 
@@ -103,7 +103,7 @@ export default function StudentProfile() {
     setLoading(true)
     try {
       // Fetch user analytics
-      const analyticsResponse = await fetch("http://localhost:5000/api/analytics/user", {
+      const analyticsResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/analytics/user", {
         credentials: "include",
       })
 
@@ -132,7 +132,7 @@ export default function StudentProfile() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${user.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -183,7 +183,7 @@ export default function StudentProfile() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${user.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

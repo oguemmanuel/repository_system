@@ -54,7 +54,7 @@ export default function ResourcePreview({ resourceId, onApprove, onReject }) {
 
       // Check if the server is reachable first
       try {
-        const serverCheckResponse = await fetch("http://localhost:5000/api/auth/me", {
+        const serverCheckResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           method: "HEAD",
           credentials: "include",
         }).catch((e) => {
@@ -69,7 +69,7 @@ export default function ResourcePreview({ resourceId, onApprove, onReject }) {
       }
 
       // Now try to fetch the resource
-      const response = await fetch(`http://localhost:5000/api/resources/${resourceId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}`, {
         credentials: "include",
         headers: {
           Accept: "application/json",
@@ -138,7 +138,7 @@ export default function ResourcePreview({ resourceId, onApprove, onReject }) {
   const handleDownload = async () => {
     try {
       // Open the download URL in a new tab
-      window.open(`http://localhost:5000/api/resources/${resourceId}/download`, "_blank")
+      window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/download`, "_blank")
     } catch (error) {
       console.error("Error downloading resource:", error)
       toast.error("Failed to download resource")

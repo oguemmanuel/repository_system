@@ -55,7 +55,7 @@ export default function PendingApprovalsPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           credentials: "include",
         })
 
@@ -85,7 +85,7 @@ export default function PendingApprovalsPage() {
     setLoading(true)
     try {
       // Fetch pending resources
-      const pendingResponse = await fetch("http://localhost:5000/api/resources/pending/supervisor", {
+      const pendingResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/supervisor", {
         credentials: "include",
       })
 
@@ -109,7 +109,7 @@ export default function PendingApprovalsPage() {
 
     setProcessingAction(true)
     try {
-      const response = await fetch(`http://localhost:5000/api/resources/${selectedResource.id}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${selectedResource.id}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -148,7 +148,7 @@ export default function PendingApprovalsPage() {
 
     setProcessingAction(true)
     try {
-      const response = await fetch(`http://localhost:5000/api/resources/${selectedResource.id}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${selectedResource.id}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -180,7 +180,7 @@ export default function PendingApprovalsPage() {
 
   const handleDownload = (resourceId) => {
     // Open the download URL in a new tab
-    window.open(`http://localhost:5000/api/resources/${resourceId}/download`, "_blank")
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/download`, "_blank")
   }
 
   const filteredResources = pendingResources.filter(resource => {

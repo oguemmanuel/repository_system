@@ -29,7 +29,7 @@ export default function ResourcesPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           credentials: "include",
         })
 
@@ -68,7 +68,7 @@ export default function ResourcesPage() {
       if (searchQuery) queryParams.append("search", searchQuery)
 
       // Fetch resources
-      const resourcesResponse = await fetch(`http://localhost:5000/api/resources?${queryParams.toString()}`, {
+      const resourcesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources?${queryParams.toString()}`, {
         credentials: "include",
       })
 
@@ -88,7 +88,7 @@ export default function ResourcesPage() {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/users/departments/all", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all", {
         credentials: "include",
       })
       if (response.ok) {
@@ -106,7 +106,7 @@ export default function ResourcesPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/resources/${resourceId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}`, {
         method: "DELETE",
         credentials: "include",
       })

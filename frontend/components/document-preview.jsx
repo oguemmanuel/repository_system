@@ -28,7 +28,7 @@ export default function DocumentPreview({ resourceId, title }) {
 
         <div className="mt-4 h-full">
           <iframe
-            src={`http://localhost:5000/api/resources/${resourceId}/preview`}
+            src={`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/preview`}
             className="w-full h-full border rounded-md"
             onLoad={() => setLoading(false)}
             onError={() => {

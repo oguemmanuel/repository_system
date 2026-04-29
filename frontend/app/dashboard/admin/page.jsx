@@ -58,7 +58,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           credentials: "include",
         })
 
@@ -88,7 +88,7 @@ const AdminDashboard = () => {
     setLoading(true)
     try {
       // Fetch users
-      const usersResponse = await fetch("http://localhost:5000/api/users", {
+      const usersResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users", {
         credentials: "include",
       })
 
@@ -99,7 +99,7 @@ const AdminDashboard = () => {
       }
 
       // Fetch resources
-      const resourcesResponse = await fetch("http://localhost:5000/api/resources", {
+      const resourcesResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources", {
         credentials: "include",
       })
 
@@ -110,7 +110,7 @@ const AdminDashboard = () => {
       }
 
       // Fetch pending resources
-      const pendingResponse = await fetch("http://localhost:5000/api/resources/pending/admin", {
+      const pendingResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/admin", {
         credentials: "include",
       })
 
@@ -121,7 +121,7 @@ const AdminDashboard = () => {
       }
 
       // Fetch active users count
-      const activeUsersResponse = await fetch("http://localhost:5000/api/users?isActive=true", {
+      const activeUsersResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users?isActive=true", {
         credentials: "include",
       })
 
@@ -140,7 +140,7 @@ const AdminDashboard = () => {
   const handleAddUser = async (e) => {
     e.preventDefault()
     try {
-      const response = await fetch("http://localhost:5000/api/users", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -176,7 +176,7 @@ const AdminDashboard = () => {
   const handleEditUser = async (e) => {
     e.preventDefault()
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${selectedUser.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${selectedUser.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -197,7 +197,7 @@ const AdminDashboard = () => {
 
       // Update role if changed
       if (selectedUser.originalRole !== selectedUser.role) {
-        const roleResponse = await fetch(`http://localhost:5000/api/users/${selectedUser.id}/role`, {
+        const roleResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${selectedUser.id}/role`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -228,7 +228,7 @@ const AdminDashboard = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`, {
         method: "DELETE",
         credentials: "include",
       })
@@ -248,7 +248,7 @@ const AdminDashboard = () => {
 
   const handleToggleUserStatus = async (userId, currentStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${userId}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -278,7 +278,7 @@ const AdminDashboard = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/resources/${resourceId}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -313,7 +313,7 @@ const AdminDashboard = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/resources/${resourceId}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -344,7 +344,7 @@ const AdminDashboard = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/resources/${resourceId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}`, {
         method: "DELETE",
         credentials: "include",
       })

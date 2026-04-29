@@ -14,7 +14,7 @@ const FeaturedProjects = () => {
   useEffect(() => {
     const fetchFeaturedProjects = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/resources/featured")
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources/featured")
         if (response.ok) {
           const data = await response.json()
           setProjects(data.resources || [])

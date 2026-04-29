@@ -79,7 +79,7 @@ export default function SupervisorDashboard() {
         }
 
         // Verify with backend
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           credentials: "include",
         })
 
@@ -112,13 +112,13 @@ export default function SupervisorDashboard() {
     setLoading(true)
     try {
       // Fetch pending approvals
-      const pendingResponse = await fetch("http://localhost:5000/api/resources/pending/supervisor", {
+      const pendingResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/supervisor", {
         credentials: "include",
       })
 
       // Fetch approved projects
       const approvedResponse = await fetch(
-        "http://localhost:5000/api/resources?status=approved&supervisorId=" + userData.id,
+        "${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved&supervisorId=" + userData.id,
         {
           credentials: "include",
         },
@@ -126,14 +126,14 @@ export default function SupervisorDashboard() {
 
       // Fetch rejected projects
       const rejectedResponse = await fetch(
-        "http://localhost:5000/api/resources?status=rejected&supervisorId=" + userData.id,
+        "${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=rejected&supervisorId=" + userData.id,
         {
           credentials: "include",
         },
       )
 
       // Fetch supervisor analytics
-      const analyticsResponse = await fetch("http://localhost:5000/api/analytics/supervisor", {
+      const analyticsResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/analytics/supervisor", {
         credentials: "include",
       })
 
@@ -177,7 +177,7 @@ export default function SupervisorDashboard() {
 
     setProcessingAction(true)
     try {
-      const response = await fetch(`http://localhost:5000/api/resources/${selectedResource.id}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${selectedResource.id}/status`, {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -219,7 +219,7 @@ export default function SupervisorDashboard() {
 
     setProcessingAction(true)
     try {
-      const response = await fetch(`http://localhost:5000/api/resources/${selectedResource.id}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${selectedResource.id}/status`, {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -256,7 +256,7 @@ export default function SupervisorDashboard() {
   }
 
   const handleDownload = (resourceId) => {
-    window.open(`http://localhost:5000/api/resources/${resourceId}/download`, "_blank")
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/download`, "_blank")
   }
 
   if (loading) {

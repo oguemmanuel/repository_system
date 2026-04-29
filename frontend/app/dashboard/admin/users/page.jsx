@@ -38,7 +38,7 @@ export default function UsersPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           credentials: "include",
         })
 
@@ -69,7 +69,7 @@ export default function UsersPage() {
     setLoading(true)
     try {
       // Fetch users
-      const usersResponse = await fetch("http://localhost:5000/api/users", {
+      const usersResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users", {
         credentials: "include",
       })
 
@@ -89,7 +89,7 @@ export default function UsersPage() {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/users/departments/all", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all", {
         credentials: "include",
       })
       if (response.ok) {
@@ -140,7 +140,7 @@ export default function UsersPage() {
         return
       }
 
-      const response = await fetch("http://localhost:5000/api/users", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -187,7 +187,7 @@ export default function UsersPage() {
         return
       }
 
-      const response = await fetch(`http://localhost:5000/api/users/${selectedUser.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${selectedUser.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -208,7 +208,7 @@ export default function UsersPage() {
 
       // Update role if changed
       if (selectedUser.originalRole !== selectedUser.role) {
-        const roleResponse = await fetch(`http://localhost:5000/api/users/${selectedUser.id}/role`, {
+        const roleResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${selectedUser.id}/role`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -242,7 +242,7 @@ export default function UsersPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`, {
         method: "DELETE",
         credentials: "include",
       })
@@ -262,7 +262,7 @@ export default function UsersPage() {
 
   const handleToggleUserStatus = async (userId, currentStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${userId}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

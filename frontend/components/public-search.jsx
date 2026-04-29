@@ -36,7 +36,7 @@ const PublicSearch = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           credentials: "include",
         })
 
@@ -56,7 +56,7 @@ const PublicSearch = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/users/departments/all")
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all")
         if (response.ok) {
           const data = await response.json()
           setDepartments(data.departments || [])
@@ -74,7 +74,7 @@ const PublicSearch = () => {
     const fetchResources = async () => {
       setLoading(true)
       try {
-        let url = `http://localhost:5000/api/resources/public?page=${page}&limit=6`
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/api/resources/public?page=${page}&limit=6`
 
         if (searchQuery) {
           url += `&search=${encodeURIComponent(searchQuery)}`
@@ -116,7 +116,7 @@ const PublicSearch = () => {
 
       // Fetch comments for each resource
       for (const resourceId of resourceIds) {
-        const response = await fetch(`http://localhost:5000/api/comments/resource/${resourceId}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments/resource/${resourceId}`)
         if (response.ok) {
           const data = await response.json()
           commentsData[resourceId] = data.comments || []
@@ -202,7 +202,7 @@ const PublicSearch = () => {
         if (nameInput) commentorName = nameInput
       }
 
-      const response = await fetch("http://localhost:5000/api/comments", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -267,7 +267,7 @@ const PublicSearch = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/comments/${commentId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments/${commentId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -323,7 +323,7 @@ const PublicSearch = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/comments/${commentId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments/${commentId}`, {
         method: "DELETE",
         credentials: "include",
       })

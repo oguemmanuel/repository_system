@@ -22,7 +22,7 @@ export default function AISummaryButton({ resourceId, title }) {
       setSummary("");
 
       const res = await fetch(
-        `http://localhost:5000/api/ai/cached-summary/${resourceId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/ai/cached-summary/${resourceId}`,
       );
 
       const data = await res.json();

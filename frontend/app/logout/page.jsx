@@ -12,7 +12,7 @@ export default function LogoutPage() {
     const performLogout = async () => {
       try {
         // Call the logout API endpoint
-        const response = await fetch("http://localhost:5000/api/auth/logout", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout", {
           method: "GET",
           credentials: "include",
         })

@@ -58,7 +58,7 @@ const ResourceUploadForm = ({ user }) => {
       setLoadingDepartments(true)
       try {
         console.log("Fetching departments...")
-        const response = await fetch("http://localhost:5000/api/users/departments/all", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all", {
           method: "GET",
           credentials: "include",
           headers: {
@@ -140,7 +140,7 @@ const ResourceUploadForm = ({ user }) => {
       try {
         console.log("Fetching supervisors for department:", formData.department)
         const response = await fetch(
-          `http://localhost:5000/api/users/supervisors/available?department=${encodeURIComponent(formData.department)}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/users/supervisors/available?department=${encodeURIComponent(formData.department)}`,
           {
             method: "GET",
             credentials: "include",
@@ -277,7 +277,7 @@ const ResourceUploadForm = ({ user }) => {
       // Append file
       formDataToSend.append("file", selectedFile)
 
-      const response = await fetch("http://localhost:5000/api/resources", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/resources", {
         method: "POST",
         credentials: "include",
         body: formDataToSend,

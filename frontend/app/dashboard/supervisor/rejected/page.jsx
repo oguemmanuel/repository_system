@@ -22,7 +22,7 @@ export default function RejectedResourcesPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/me", {
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
           credentials: "include",
         })
 
@@ -54,7 +54,7 @@ export default function RejectedResourcesPage() {
     try {
       // Fetch rejected resources
       const rejectedResponse = await fetch(
-        `http://localhost:5000/api/resources?status=rejected&supervisorId=${supervisorId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=rejected&supervisorId=${supervisorId}`,
         {
           credentials: "include",
         },
@@ -76,7 +76,7 @@ export default function RejectedResourcesPage() {
 
   const handleDownload = (resourceId) => {
     // Open the download URL in a new tab
-    window.open(`http://localhost:5000/api/resources/${resourceId}/download`, "_blank")
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/download`, "_blank")
   }
 
   const filteredRejectedResources = rejectedResources.filter(

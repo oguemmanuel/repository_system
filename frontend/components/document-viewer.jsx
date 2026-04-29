@@ -21,7 +21,7 @@ export default function DocumentViewer({ resourceId }) {
 
         // Check if the server is reachable first
         try {
-          const serverCheckResponse = await fetch("http://localhost:5000/api/auth/me", {
+          const serverCheckResponse = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/me", {
             method: "HEAD",
             credentials: "include",
           }).catch((e) => {
@@ -36,7 +36,7 @@ export default function DocumentViewer({ resourceId }) {
         }
 
         // Get resource details
-        const response = await fetch(`http://localhost:5000/api/resources/${resourceId}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}`, {
           credentials: "include",
           headers: {
             Accept: "application/json",
@@ -68,12 +68,12 @@ export default function DocumentViewer({ resourceId }) {
 
   const handlePreview = () => {
     // Open the preview URL in a new tab
-    window.open(`http://localhost:5000/api/resources/${resourceId}/preview`, "_blank")
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/preview`, "_blank")
   }
 
   const handleDownload = () => {
     // Open the download URL in a new tab
-    window.open(`http://localhost:5000/api/resources/${resourceId}/download`, "_blank")
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/download`, "_blank")
   }
 
   const getFileTypeDisplay = (fileType) => {

@@ -50,7 +50,7 @@ export default function RegisterPage() {
     const fetchDepartments = async () => {
       setLoadingDepartments(true)
       try {
-        const response = await fetch("http://localhost:5000/api/users/departments/all")
+        const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all")
         if (response.ok) {
           const data = await response.json()
           if (data.departments && data.departments.length > 0) {
@@ -164,7 +164,7 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch("${process.env.NEXT_PUBLIC_API_URL}/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
