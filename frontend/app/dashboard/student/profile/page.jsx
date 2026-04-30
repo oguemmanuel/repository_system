@@ -44,7 +44,7 @@ export default function StudentProfile() {
     const checkAuth = async () => {
       try {
         // Try to get user from localStorage first
-        const storedUser = localStorage.getItem("user")
+        const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user")
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser)
           if (parsedUser.role !== "student") {

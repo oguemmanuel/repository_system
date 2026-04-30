@@ -68,7 +68,7 @@ export default function SupervisorDashboard() {
     const checkAuth = async () => {
       try {
         // Try to get user from localStorage first
-        const storedUser = localStorage.getItem("user")
+        const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user")
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser)
           if (parsedUser.role !== "supervisor") {
@@ -78,27 +78,8 @@ export default function SupervisorDashboard() {
           setUser(parsedUser)
         }
 
-        // Verify with backend
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-          credentials: "include",
-        })
-
-        if (!response.ok) {
-          localStorage.removeItem("user")
-          router.push("/login")
-          return
-        }
-
-        const data = await response.json()
-        localStorage.setItem("user", JSON.stringify(data.user))
-
-        if (data.user.role !== "supervisor") {
-          router.push(`/dashboard/${data.user.role}`)
-          return
-        }
-
-        setUser(data.user)
-        fetchData(data.user)
+        setUser(parsedUser)
+        fetchData(parsedUser)
       } catch (error) {
         console.error("Auth check error:", error)
         router.push("/login")
