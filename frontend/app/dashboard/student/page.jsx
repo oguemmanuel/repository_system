@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { toast } from "sonner"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import {
   BookOpen,
   FileText,
@@ -21,102 +21,89 @@ import {
   Download,
   XCircle,
   Loader2,
-} from "lucide-react"
-import DashboardNav from "@/components/dashboard-nav"
-import DashboardHeader from "@/components/dashboard-header"
-import DataTable from "@/components/data-table"
-import AISummaryButton from "@/components/ai-summary-button"
+} from "lucide-react";
+import DashboardNav from "@/components/dashboard-nav";
+import DashboardHeader from "@/components/dashboard-header";
+import DataTable from "@/components/data-table";
+import AISummaryButton from "@/components/ai-summary-button";
 
 export default function StudentDashboard() {
-  const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [myResources, setMyResources] = useState([])
-  const [approvedResources, setApprovedResources] = useState([])
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [myResources, setMyResources] = useState([]);
+  const [approvedResources, setApprovedResources] = useState([]);
   const [stats, setStats] = useState({
     totalUploads: 0,
     pendingResources: 0,
     approvedResources: 0,
     rejectedResources: 0,
-  })
+  });
 
   // Check authentication on component mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Try to get user from localStorage first
-        const storedUser = localStorage.getItem("user")
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser)
-          if (parsedUser.role !== "student") {
-            // Redirect to appropriate dashboard
-            router.push(`/dashboard/${parsedUser.role}`)
-            return
-          }
-          setUser(parsedUser)
+        const storedUser =
+          localStorage.getItem("user") || sessionStorage.getItem("user");
+        if (!storedUser) {
+          router.push("/login");
+          return;
         }
-
-        // Verify with backend
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-          credentials: "include",
-        })
-
-        if (!response.ok) {
-          // If backend check fails, clear localStorage and redirect to login
-          localStorage.removeItem("user")
-          router.push("/login")
-          return
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser.role !== "student") {
+          router.push(`/dashboard/${parsedUser.role}`);
+          return;
         }
-
-        const data = await response.json()
-
-        // Update localStorage with fresh data
-        localStorage.setItem("user", JSON.stringify(data.user))
-
-        // If not a student, redirect
-        if (data.user.role !== "student") {
-          router.push(`/dashboard/${data.user.role}`)
-          return
-        }
-
-        setUser(data.user)
-        fetchData(data.user)
+        setUser(parsedUser);
+        fetchData(parsedUser);
       } catch (error) {
-        console.error("Auth check error:", error)
-        router.push("/login")
+        console.error("Auth check error:", error);
+        router.push("/login");
       }
-    }
+    };
 
-    checkAuth()
-  }, [router])
+    checkAuth();
+  }, [router]);
 
   const fetchData = async (userData) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      // Fetch student's resources
-      const myResourcesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/student/my-resources`, {
-        credentials: "include",
-      })
+      const myResourcesResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resources/student/my-resources`,
+        {
+          credentials: "include",
+        },
+      );
 
-      // Fetch approved resources
-      const approvedResourcesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved`, {
-        credentials: "include",
-      })
+      const approvedResourcesResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved`,
+        {
+          credentials: "include",
+        },
+      );
 
-      // Fetch user analytics
-      const analyticsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/user`, {
-        credentials: "include",
-      })
+      const analyticsResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/analytics/user`,
+        {
+          credentials: "include",
+        },
+      );
 
       if (myResourcesResponse.ok) {
-        const myResourcesData = await myResourcesResponse.json()
-        setMyResources(myResourcesData.resources || [])
+        const myResourcesData = await myResourcesResponse.json();
+        setMyResources(myResourcesData.resources || []);
 
-        // Calculate stats from resources
-        const pendingCount = myResourcesData.resources.filter((r) => r.status === "pending").length
-        const approvedCount = myResourcesData.resources.filter((r) => r.status === "approved").length
-        const rejectedCount = myResourcesData.resources.filter((r) => r.status === "rejected").length
+        const pendingCount = myResourcesData.resources.filter(
+          (r) => r.status === "pending",
+        ).length;
+        const approvedCount = myResourcesData.resources.filter(
+          (r) => r.status === "approved",
+        ).length;
+        const rejectedCount = myResourcesData.resources.filter(
+          (r) => r.status === "rejected",
+        ).length;
 
         setStats((prev) => ({
           ...prev,
@@ -124,61 +111,64 @@ export default function StudentDashboard() {
           pendingResources: pendingCount,
           approvedResources: approvedCount,
           rejectedResources: rejectedCount,
-        }))
+        }));
       }
 
       if (approvedResourcesResponse.ok) {
-        const approvedResourcesData = await approvedResourcesResponse.json()
-        setApprovedResources(approvedResourcesData.resources || [])
+        const approvedResourcesData = await approvedResourcesResponse.json();
+        setApprovedResources(approvedResourcesData.resources || []);
       }
 
       if (analyticsResponse.ok) {
-        const analyticsData = await analyticsResponse.json()
+        const analyticsData = await analyticsResponse.json();
         setStats((prev) => ({
           ...prev,
           ...analyticsData.analytics,
-        }))
+        }));
       }
     } catch (error) {
-      console.error("Error fetching resources:", error)
-      toast.error("Failed to load resources. Please try again later.")
+      console.error("Error fetching resources:", error);
+      toast.error("Failed to load resources. Please try again later.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const filteredMyResources = myResources.filter(
     (resource) =>
       resource.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       resource.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       resource.department?.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  );
 
   const filteredApprovedResources = approvedResources.filter(
     (resource) =>
       resource.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       resource.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       resource.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      resource.uploadedByName?.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+      resource.uploadedByName
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()),
+  );
 
-  // Get current time of day for greeting
   const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return "Good morning"
-    if (hour < 18) return "Good afternoon"
-    return "Good evening"
-  }
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
         <div className="flex flex-col items-center">
           <Loader2 className="h-12 w-12 text-blue-600 animate-spin mb-4" />
-          <p className="text-lg font-medium text-blue-700">Loading dashboard...</p>
+          <p className="text-lg font-medium text-blue-700">
+            Loading dashboard...
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -190,10 +180,14 @@ export default function StudentDashboard() {
             <div className="mb-6 mt-2">
               <div className="flex items-center space-x-2 px-2">
                 <GraduationCap className="h-6 w-6 text-blue-200" />
-                <h2 className="text-xl font-bold text-blue-100">Student Portal</h2>
+                <h2 className="text-xl font-bold text-blue-100">
+                  Student Portal
+                </h2>
               </div>
               <div className="mt-3 px-2">
-                <p className="text-sm text-blue-300">{user?.fullName || "Student"}</p>
+                <p className="text-sm text-blue-300">
+                  {user?.fullName || "Student"}
+                </p>
                 <p className="text-xs text-blue-400">{user?.email || ""}</p>
               </div>
             </div>
@@ -206,7 +200,9 @@ export default function StudentDashboard() {
               <h1 className="text-3xl font-bold tracking-tight text-blue-800">
                 {getGreeting()}, {user?.fullName || "Student"}!
               </h1>
-              <p className="text-blue-600">Access and manage your academic resources.</p>
+              <p className="text-blue-600">
+                Access and manage your academic resources.
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/dashboard/student/profile">
@@ -232,38 +228,54 @@ export default function StudentDashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card className="border-0 shadow-md bg-gradient-to-br from-amber-50 to-amber-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-amber-900">My Uploads</CardTitle>
+                <CardTitle className="text-sm font-medium text-amber-900">
+                  My Uploads
+                </CardTitle>
                 <Upload className="h-4 w-4 text-amber-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-amber-800">{stats.totalUploads}</div>
+                <div className="text-2xl font-bold text-amber-800">
+                  {stats.totalUploads}
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-emerald-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-emerald-900">Approved</CardTitle>
+                <CardTitle className="text-sm font-medium text-emerald-900">
+                  Approved
+                </CardTitle>
                 <BookOpen className="h-4 w-4 text-emerald-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-emerald-800">{stats.approvedResources}</div>
+                <div className="text-2xl font-bold text-emerald-800">
+                  {stats.approvedResources}
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-md bg-gradient-to-br from-rose-50 to-rose-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-rose-900">Rejected</CardTitle>
+                <CardTitle className="text-sm font-medium text-rose-900">
+                  Rejected
+                </CardTitle>
                 <XCircle className="h-4 w-4 text-rose-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-rose-800">{stats.rejectedResources}</div>
+                <div className="text-2xl font-bold text-rose-800">
+                  {stats.rejectedResources}
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-md bg-gradient-to-br from-violet-50 to-violet-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-violet-900">Pending</CardTitle>
+                <CardTitle className="text-sm font-medium text-violet-900">
+                  Pending
+                </CardTitle>
                 <FileText className="h-4 w-4 text-violet-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-violet-800">{stats.pendingResources}</div>
+                <div className="text-2xl font-bold text-violet-800">
+                  {stats.pendingResources}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -312,19 +324,23 @@ export default function StudentDashboard() {
                         header: "Type",
                         accessorKey: "type",
                         cell: (info) => {
-                          const type = info.getValue()
-                          let displayType = type
-
-                          if (type === "past-exam") displayType = "Past Exam"
-                          else if (type === "mini-project") displayType = "Mini Project"
-                          else if (type === "final-project") displayType = "Final Year Project"
-                          else if (type === "thesis") displayType = "Thesis"
-
-                          return displayType
+                          const type = info.getValue();
+                          let displayType = type;
+                          if (type === "past-exam") displayType = "Past Exam";
+                          else if (type === "mini-project")
+                            displayType = "Mini Project";
+                          else if (type === "final-project")
+                            displayType = "Final Year Project";
+                          else if (type === "thesis") displayType = "Thesis";
+                          return displayType;
                         },
                       },
                       { header: "Department", accessorKey: "department" },
-                      { header: "Supervisor", accessorKey: "supervisorName", cell: (info) => info.getValue() || "N/A" },
+                      {
+                        header: "Supervisor",
+                        accessorKey: "supervisorName",
+                        cell: (info) => info.getValue() || "N/A",
+                      },
                       {
                         header: "Status",
                         accessorKey: "status",
@@ -356,12 +372,17 @@ export default function StudentDashboard() {
                                 View
                               </Button>
                             </Link>
-                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
+                            <AISummaryButton
+                              resourceId={info.row.original.id}
+                              title={info.row.original.title}
+                            />
                             {info.row.original.status === "approved" && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleDownload(info.row.original.id)}
+                                onClick={() =>
+                                  handleDownload(info.row.original.id)
+                                }
                                 className="border-slate-300 text-slate-700 hover:bg-slate-50"
                               >
                                 <Download className="h-4 w-4 mr-1" />
@@ -377,9 +398,12 @@ export default function StudentDashboard() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-lg shadow-sm">
                   <Upload className="h-12 w-12 text-amber-500 mb-4" />
-                  <h3 className="text-lg font-medium text-amber-800">No resources uploaded yet</h3>
+                  <h3 className="text-lg font-medium text-amber-800">
+                    No resources uploaded yet
+                  </h3>
                   <p className="text-amber-600 mt-2">
-                    Start by uploading your first resource using the "Upload Resource" button.
+                    Start by uploading your first resource using the "Upload
+                    Resource" button.
                   </p>
                 </div>
               )}
@@ -395,15 +419,15 @@ export default function StudentDashboard() {
                         header: "Type",
                         accessorKey: "type",
                         cell: (info) => {
-                          const type = info.getValue()
-                          let displayType = type
-
-                          if (type === "past-exam") displayType = "Past Exam"
-                          else if (type === "mini-project") displayType = "Mini Project"
-                          else if (type === "final-project") displayType = "Final Year Project"
-                          else if (type === "thesis") displayType = "Thesis"
-
-                          return displayType
+                          const type = info.getValue();
+                          let displayType = type;
+                          if (type === "past-exam") displayType = "Past Exam";
+                          else if (type === "mini-project")
+                            displayType = "Mini Project";
+                          else if (type === "final-project")
+                            displayType = "Final Year Project";
+                          else if (type === "thesis") displayType = "Thesis";
+                          return displayType;
                         },
                       },
                       { header: "Department", accessorKey: "department" },
@@ -412,8 +436,8 @@ export default function StudentDashboard() {
                         header: "Upload Date",
                         accessorKey: "createdAt",
                         cell: (info) => {
-                          const date = new Date(info.getValue())
-                          return date.toLocaleDateString()
+                          const date = new Date(info.getValue());
+                          return date.toLocaleDateString();
                         },
                       },
                       {
@@ -430,11 +454,16 @@ export default function StudentDashboard() {
                                 View
                               </Button>
                             </Link>
-                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
+                            <AISummaryButton
+                              resourceId={info.row.original.id}
+                              title={info.row.original.title}
+                            />
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDownload(info.row.original.id)}
+                              onClick={() =>
+                                handleDownload(info.row.original.id)
+                              }
                               className="border-slate-300 text-slate-700 hover:bg-slate-50"
                             >
                               <Download className="h-4 w-4 mr-1" />
@@ -449,9 +478,12 @@ export default function StudentDashboard() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-lg shadow-sm">
                   <BookOpen className="h-12 w-12 text-emerald-500 mb-4" />
-                  <h3 className="text-lg font-medium text-emerald-800">No approved resources found</h3>
+                  <h3 className="text-lg font-medium text-emerald-800">
+                    No approved resources found
+                  </h3>
                   <p className="text-emerald-600 mt-2">
-                    Try adjusting your search or check back later for new resources.
+                    Try adjusting your search or check back later for new
+                    resources.
                   </p>
                 </div>
               )}
@@ -460,5 +492,5 @@ export default function StudentDashboard() {
         </main>
       </div>
     </div>
-  )
+  );
 }
