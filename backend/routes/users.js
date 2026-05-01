@@ -181,7 +181,7 @@ router.get("/:id", isAuthenticated, async (req, res) => {
     const userId = req.params.id
 
     // Check if user is authorized (admin or self)
-    if (req.session.user.role !== "admin" && req.session.user.id !== Number.parseInt(userId)) {
+    if (req.user.role !== "admin" && req.user.id !== Number.parseInt(userId)) {
       return res.status(403).json({
         success: false,
         message: "You do not have permission to view this user",
@@ -287,7 +287,7 @@ router.put("/:id", isAuthenticated, async (req, res) => {
     const userId = req.params.id
 
     // Check if user is authorized (admin or self)
-    if (req.session.user.role !== "admin" && req.session.user.id !== Number.parseInt(userId)) {
+    if (req.user.role !== "admin" && req.user.id !== Number.parseInt(userId)) {
       return res.status(403).json({
         success: false,
         message: "You do not have permission to update this user",
@@ -297,7 +297,7 @@ router.put("/:id", isAuthenticated, async (req, res) => {
     const { fullName, phoneNumber, department, password, email, username, indexNumber } = req.body
 
     // If admin is updating email or username, check if they already exist
-    if ((email || username) && req.session.user.role === "admin") {
+    if ((email || username) && req.user.role === "admin") {
       const [existingUsers] = await db.query("SELECT * FROM users WHERE (email = ? OR username = ?) AND id != ?", [
         email || "",
         username || "",
@@ -331,17 +331,17 @@ router.put("/:id", isAuthenticated, async (req, res) => {
       queryParams.push(department)
     }
 
-    if (email && req.session.user.role === "admin") {
+    if (email && req.user.role === "admin") {
       query += "email = ?, "
       queryParams.push(email)
     }
 
-    if (username && req.session.user.role === "admin") {
+    if (username && req.user.role === "admin") {
       query += "username = ?, "
       queryParams.push(username)
     }
 
-    if (indexNumber && req.session.user.role === "admin") {
+    if (indexNumber && req.user.role === "admin") {
       query += "indexNumber = ?, "
       queryParams.push(indexNumber)
     }
@@ -482,7 +482,7 @@ router.delete("/:id", isAuthenticated, isAdmin, async (req, res) => {
     const userId = req.params.id
 
     // Prevent deleting the last admin
-    if (req.session.user.id === Number.parseInt(userId) && req.session.user.role === "admin") {
+    if (req.user.id === Number.parseInt(userId) && req.user.role === "admin") {
       const [adminCount] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'")
 
       if (adminCount[0].count <= 1) {
@@ -504,7 +504,7 @@ router.delete("/:id", isAuthenticated, isAdmin, async (req, res) => {
       await db.query("UPDATE resources SET supervisorId = NULL WHERE supervisorId = ?", [userId])
       // For resources uploaded by this user, we could either delete them or reassign them
       // Here we'll reassign them to the admin making the request
-      await db.query("UPDATE resources SET uploadedBy = ? WHERE uploadedBy = ?", [req.session.user.id, userId])
+      await db.query("UPDATE resources SET uploadedBy = ? WHERE uploadedBy = ?", [req.user.id, userId])
       await db.query("UPDATE resources SET studentId = NULL WHERE studentId = ?", [userId])
     }
 

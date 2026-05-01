@@ -159,7 +159,7 @@ router.post("/login", validateLogin, async (req, res) => {
     }
 
     // Create session
-    req.session.user = {
+    req.user = {
       id: user.id,
       username: user.username,
       email: user.email,
@@ -236,8 +236,8 @@ router.get("/me", async (req, res) => {
       }
     }
 
-    if (!userId && req.session && req.session.user) {
-      userId = req.session.user.id;
+    if (!userId && req.session && req.user) {
+      userId = req.user.id;
     }
 
     if (!userId) {

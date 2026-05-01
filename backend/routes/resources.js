@@ -42,8 +42,8 @@ const upload = multer({
 router.put("/approve/:id", isAuthenticated, isAdmin, async (req, res) => {
   try {
     const resourceId = req.params.id
-    const userId = req.session.user.id
-    const userRole = req.session.user.role
+    const userId = req.user.id
+    const userRole = req.user.role
 
     // Check if user has permission to approve (admin or supervisor)
     if (userRole !== "admin" && userRole !== "supervisor") {
@@ -197,16 +197,16 @@ router.get("/", async (req, res) => {
     }
 
     // Add status filter for non-admin users
-    if (req.session && req.session.user && req.session.user.role !== "admin") {
+    if (req.session && req.user && req.user.role !== "admin") {
       // Students can only see approved resources or their own uploads
-      if (req.session.user.role === "student") {
+      if (req.user.role === "student") {
         query += ' AND (r.status = "approved" OR r.uploadedBy = ?)'
-        queryParams.push(req.session.user.id)
+        queryParams.push(req.user.id)
       }
       // Supervisors can see approved resources, their own uploads, and resources assigned to them
-      else if (req.session.user.role === "supervisor") {
+      else if (req.user.role === "supervisor") {
         query += ' AND (r.status = "approved" OR r.uploadedBy = ? OR r.supervisorId = ?)'
-        queryParams.push(req.session.user.id, req.session.user.id)
+        queryParams.push(req.user.id, req.user.id)
       }
     }
 
@@ -424,13 +424,13 @@ router.get("/:id", async (req, res) => {
     const resource = resources[0]
 
     // Check if resource is approved or user is the uploader or admin or supervisor
-    const isAuthenticated = req.session && req.session.user
+    const isAuthenticated = req.session && req.user
     const isAuthorized =
       isAuthenticated &&
       (resource.status === "approved" ||
-        req.session.user.id === resource.uploadedBy ||
-        req.session.user.role === "admin" ||
-        (req.session.user.role === "supervisor" && req.session.user.id === resource.supervisorId))
+        req.user.id === resource.uploadedBy ||
+        req.user.role === "admin" ||
+        (req.user.role === "supervisor" && req.user.id === resource.supervisorId))
 
     if (!isAuthenticated && resource.status !== "approved") {
       return res.status(403).json({
@@ -450,7 +450,7 @@ router.get("/:id", async (req, res) => {
     if (isAuthenticated) {
       await db.query(
         "INSERT INTO resource_access_logs (resourceId, userId, action, ipAddress, userAgent) VALUES (?, ?, ?, ?, ?)",
-        [resourceId, req.session.user.id, "view", req.ip, req.headers["user-agent"]],
+        [resourceId, req.user.id, "view", req.ip, req.headers["user-agent"]],
       )
 
       // Increment view count
@@ -502,13 +502,13 @@ router.get("/:id/download", async (req, res) => {
     const resource = resources[0]
 
     // Check if resource is approved or user is authorized
-    const isAuthenticated = req.session && req.session.user
+    const isAuthenticated = req.session && req.user
     const isAuthorized =
       isAuthenticated &&
       (resource.status === "approved" ||
-        req.session.user.id === resource.uploadedBy ||
-        req.session.user.role === "admin" ||
-        (req.session.user.role === "supervisor" && req.session.user.id === resource.supervisorId))
+        req.user.id === resource.uploadedBy ||
+        req.user.role === "admin" ||
+        (req.user.role === "supervisor" && req.user.id === resource.supervisorId))
 
     if (!isAuthenticated && resource.status !== "approved") {
       return res.status(403).json({
@@ -536,7 +536,7 @@ router.get("/:id/download", async (req, res) => {
     if (isAuthenticated) {
       await db.query(
         "INSERT INTO resource_access_logs (resourceId, userId, action, ipAddress, userAgent) VALUES (?, ?, ?, ?, ?)",
-        [resourceId, req.session.user.id, "download", req.ip, req.headers["user-agent"]],
+        [resourceId, req.user.id, "download", req.ip, req.headers["user-agent"]],
       )
 
       // Increment download count
@@ -575,13 +575,13 @@ router.get("/:id/preview", async (req, res) => {
     const resource = resources[0]
 
     // Check if resource is approved or user is authorized
-    const isAuthenticated = req.session && req.session.user
+    const isAuthenticated = req.session && req.user
     const isAuthorized =
       isAuthenticated &&
       (resource.status === "approved" ||
-        req.session.user.id === resource.uploadedBy ||
-        req.session.user.role === "admin" ||
-        (req.session.user.role === "supervisor" && req.session.user.id === resource.supervisorId))
+        req.user.id === resource.uploadedBy ||
+        req.user.role === "admin" ||
+        (req.user.role === "supervisor" && req.user.id === resource.supervisorId))
 
     if (!isAuthenticated && resource.status !== "approved") {
       return res.status(403).json({
@@ -609,7 +609,7 @@ router.get("/:id/preview", async (req, res) => {
     if (isAuthenticated) {
       await db.query(
         "INSERT INTO resource_access_logs (resourceId, userId, action, ipAddress, userAgent) VALUES (?, ?, ?, ?, ?)",
-        [resourceId, req.session.user.id, "preview", req.ip, req.headers["user-agent"]],
+        [resourceId, req.user.id, "preview", req.ip, req.headers["user-agent"]],
       )
     }
 
@@ -734,11 +734,11 @@ router.post("/", isAuthenticated, upload.single("file"), validateResourceUpload,
     const filePath = req.file.path
     const fileSize = req.file.size
     const fileType = req.file.mimetype
-    const uploadedBy = req.session.user.id
+    const uploadedBy = req.user.id
 
     // Determine initial status based on user role and resource type
     let status = "pending"
-    if (req.session.user.role === "admin" || (req.session.user.role === "supervisor" && type !== "final-project")) {
+    if (req.user.role === "admin" || (req.user.role === "supervisor" && type !== "final-project")) {
       status = "approved"
     }
 
@@ -750,7 +750,7 @@ router.post("/", isAuthenticated, upload.single("file"), validateResourceUpload,
 
     if (type === "final-project") {
       // If uploader is a student, require supervisor
-      if (req.session.user.role === "student") {
+      if (req.user.role === "student") {
         if (!supervisorId && !supervisorName) {
           // If no supervisor specified, find one from the same department
           const [departmentSupervisors] = await db.query(
@@ -784,8 +784,8 @@ router.post("/", isAuthenticated, upload.single("file"), validateResourceUpload,
       }
 
       // If uploader is a supervisor, they become the supervisor automatically
-      if (req.session.user.role === "supervisor") {
-        resolvedSupervisorId = req.session.user.id
+      if (req.user.role === "supervisor") {
+        resolvedSupervisorId = req.user.id
       }
     }
 
@@ -795,7 +795,7 @@ router.post("/", isAuthenticated, upload.single("file"), validateResourceUpload,
       type,
       department,
       uploadedBy,
-      studentId: studentId || (req.session.user.role === "student" ? req.session.user.id : null),
+      studentId: studentId || (req.user.role === "student" ? req.user.id : null),
       supervisorId: resolvedSupervisorId,
       status,
     })
@@ -814,7 +814,7 @@ router.post("/", isAuthenticated, upload.single("file"), validateResourceUpload,
         fileSize,
         fileType,
         uploadedBy,
-        studentId || (req.session.user.role === "student" ? req.session.user.id : null),
+        studentId || (req.user.role === "student" ? req.user.id : null),
         resolvedSupervisorId,
         status,
       ],
@@ -880,8 +880,8 @@ router.post("/", isAuthenticated, upload.single("file"), validateResourceUpload,
 // Get pending resources for supervisor approval
 router.get("/pending/supervisor", isAuthenticated, isAuthorized(["supervisor"]), async (req, res) => {
   try {
-    const supervisorId = req.session.user.id
-    const { department } = req.session.user
+    const supervisorId = req.user.id
+    const { department } = req.user
 
     let query = ` 
       SELECT r.*,   
@@ -970,7 +970,7 @@ router.get("/pending/admin", isAuthenticated, isAuthorized(["admin"]), async (re
 // Get student resources
 router.get("/student/my-resources", isAuthenticated, isAuthorized(["student"]), async (req, res) => {
   try {
-    const studentId = req.session.user.id
+    const studentId = req.user.id
 
     const [resources] = await db.query(
       `SELECT r.*,   
@@ -1028,12 +1028,12 @@ router.patch("/:id/status", isAuthenticated, isSupervisorOrAdmin, validateResour
     const resource = resources[0]
 
     // Check if user is authorized to update status
-    if (req.session.user.role === "supervisor") {
+    if (req.user.role === "supervisor") {
       // For final year projects, only the assigned supervisor or supervisor from same department can approve/reject
       if (resource.type === "final-project") {
-        const [supervisorDept] = await db.query("SELECT department FROM users WHERE id = ?", [req.session.user.id])
+        const [supervisorDept] = await db.query("SELECT department FROM users WHERE id = ?", [req.user.id])
 
-        if (resource.supervisorId !== req.session.user.id && supervisorDept[0].department !== resource.department) {
+        if (resource.supervisorId !== req.user.id && supervisorDept[0].department !== resource.department) {
           return res.status(403).json({
             success: false,
             message: "You are not authorized to update this resource's status",
@@ -1115,7 +1115,7 @@ router.put("/:id", isAuthenticated, async (req, res) => {
     const resource = resources[0]
 
     // Check if user is authorized to update resource
-    if (req.session.user.role !== "admin" && req.session.user.id !== resource.uploadedBy) {
+    if (req.user.role !== "admin" && req.user.id !== resource.uploadedBy) {
       return res.status(403).json({
         success: false,
         message: "You do not have permission to update this resource",
@@ -1200,7 +1200,7 @@ router.delete("/:id", isAuthenticated, async (req, res) => {
     const resource = resources[0]
 
     // Check if user is authorized to delete (admin or resource uploader)
-    if (req.session.user.role !== "admin" && req.session.user.id !== resource.uploadedBy) {
+    if (req.user.role !== "admin" && req.user.id !== resource.uploadedBy) {
       return res.status(403).json({
         success: false,
         message: "You do not have permission to delete this resource",
@@ -1258,7 +1258,7 @@ router.post("/:id/comments", isAuthenticated, async (req, res) => {
   try {
     const resourceId = req.params.id
     const { content } = req.body
-    const userId = req.session.user.id
+    const userId = req.user.id
 
     if (!content) {
       return res.status(400).json({
