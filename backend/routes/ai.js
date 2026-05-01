@@ -7,9 +7,6 @@ const pdf = require("pdf-parse");
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
 
-// --------------------
-// PDF extractor
-// --------------------
 async function extractTextFromPDF(filePath) {
   try {
     if (!fs.existsSync(filePath)) return "";
@@ -22,20 +19,12 @@ async function extractTextFromPDF(filePath) {
   }
 }
 
-// --------------------
-// SAFE MODEL PICKER (FIXES YOUR ERROR)
-// --------------------
 function getModel() {
-  const models = ["gemini-1.5-flash-002", "gemini-1.5-pro-002"];
-
   return genAI.getGenerativeModel({
-    model: models[0], // force stable model
+    model: "gemini-1.5-flash",
   });
 }
 
-// --------------------
-// AI SUMMARY (FIXED VERSION)
-// --------------------
 router.get("/cached-summary/:id", async (req, res) => {
   try {
     const resourceId = req.params.id;
@@ -54,10 +43,9 @@ router.get("/cached-summary/:id", async (req, res) => {
     );
 
     if (!resources.length) {
-      return res.status(404).json({
-        success: false,
-        message: "Resource not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Resource not found" });
     }
 
     const r = resources[0];
@@ -70,7 +58,6 @@ router.get("/cached-summary/:id", async (req, res) => {
 
     const prompt = `
 You are a professional academic assistant.
-
 Summarize this project clearly, professionally, and concisely.
 
 Title: ${r.title}
@@ -89,18 +76,13 @@ ${documentText}
 `;
 
     const model = getModel();
-
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
-    return res.json({
-      success: true,
-      summary: text,
-    });
+    return res.json({ success: true, summary: text });
   } catch (err) {
     console.error("AI error:", err);
-
     return res.status(500).json({
       success: false,
       message: "AI generation failed. Please try again later.",
