@@ -31,6 +31,7 @@ export default function PendingApprovalsPage() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         })
 
         if (!response.ok) {
@@ -61,6 +62,7 @@ export default function PendingApprovalsPage() {
       // Fetch pending resources
       const pendingResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/admin`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (pendingResponse.ok) {
@@ -86,6 +88,7 @@ export default function PendingApprovalsPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({ status: "approved" }),
       })
 
@@ -119,6 +122,7 @@ export default function PendingApprovalsPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({
           status: "rejected",
           rejectionReason: rejectionReason,

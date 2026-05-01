@@ -34,6 +34,7 @@ export default function ProfilePage() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         })
 
         if (!response.ok) {
@@ -86,6 +87,7 @@ export default function ProfilePage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({
           fullName: profileData.fullName,
           phoneNumber: profileData.phoneNumber,
@@ -135,6 +137,7 @@ export default function ProfilePage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({
           password: passwordData.newPassword,
           currentPassword: passwordData.currentPassword,

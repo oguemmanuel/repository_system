@@ -31,6 +31,7 @@ export default function ResourcesPage() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         })
 
         if (!response.ok) {
@@ -70,6 +71,7 @@ export default function ResourcesPage() {
       // Fetch resources
       const resourcesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources?${queryParams.toString()}`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (resourcesResponse.ok) {
@@ -90,6 +92,7 @@ export default function ResourcesPage() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
       if (response.ok) {
         const data = await response.json()
@@ -109,6 +112,7 @@ export default function ResourcesPage() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}`, {
         method: "DELETE",
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (!response.ok) {

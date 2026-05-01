@@ -57,6 +57,7 @@ export default function ResourcePreview({ resourceId, onApprove, onReject }) {
         const serverCheckResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           method: "HEAD",
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         }).catch((e) => {
           console.error("Server connection error:", e)
           throw new Error("Cannot connect to server. Please check if the server is running.")
@@ -71,6 +72,7 @@ export default function ResourcePreview({ resourceId, onApprove, onReject }) {
       // Now try to fetch the resource
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         headers: {
           Accept: "application/json",
           "Cache-Control": "no-cache",

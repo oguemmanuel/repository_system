@@ -61,6 +61,7 @@ const ResourceUploadForm = ({ user }) => {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all`, {
           method: "GET",
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
           headers: {
             "Content-Type": "application/json",
           },
@@ -144,6 +145,7 @@ const ResourceUploadForm = ({ user }) => {
           {
             method: "GET",
             credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
             headers: {
               "Content-Type": "application/json",
             },
@@ -280,6 +282,7 @@ const ResourceUploadForm = ({ user }) => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources`, {
         method: "POST",
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: formDataToSend,
       })
 

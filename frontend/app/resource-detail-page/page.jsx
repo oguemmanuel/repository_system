@@ -40,7 +40,8 @@ export default function ResourceDetailPage({ params }) {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}`,
-          { credentials: "include" },
+          { credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) } },
         );
 
         if (!response.ok) throw new Error("Failed to fetch resource");
@@ -81,6 +82,7 @@ export default function ResourceDetailPage({ params }) {
         {
           method: "PATCH",
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
           headers: {
             "Content-Type": "application/json",
           },
@@ -115,6 +117,7 @@ export default function ResourceDetailPage({ params }) {
         {
           method: "PATCH",
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
           headers: {
             "Content-Type": "application/json",
           },

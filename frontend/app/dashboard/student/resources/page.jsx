@@ -64,6 +64,7 @@ export default function StudentResources() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/resources/student/my-resources`,
         {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         },
       );
 
@@ -71,6 +72,7 @@ export default function StudentResources() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved`,
         {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         },
       );
 

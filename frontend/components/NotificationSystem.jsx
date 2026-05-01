@@ -13,7 +13,8 @@ export default function NotificationSystem() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications`, {
         method: "GET",
-        credentials: "include", // Include cookies for session management
+        credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) }, // Include cookies for session management
       });
       if (response.ok) {
         const data = await response.json();
@@ -30,7 +31,8 @@ export default function NotificationSystem() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/unread-count`, {
         method: "GET",
-        credentials: "include", // Include cookies for session management
+        credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) }, // Include cookies for session management
       });
       if (response.ok) {
         const data = await response.json();
@@ -48,7 +50,8 @@ export default function NotificationSystem() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}/read`, {
         method: "PATCH",
-        credentials: "include", // Include cookies for session management
+        credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) }, // Include cookies for session management
       });
       
       if (response.ok) {
@@ -71,7 +74,8 @@ export default function NotificationSystem() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/mark-all-read`, {
         method: "PATCH",
-        credentials: "include", // Include cookies for session management
+        credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) }, // Include cookies for session management
       });
       
       if (response.ok) {
@@ -90,7 +94,8 @@ export default function NotificationSystem() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${id}`, {
         method: "DELETE",
-        credentials: "include", // Include cookies for session management
+        credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) }, // Include cookies for session management
       });
       
       if (response.ok) {

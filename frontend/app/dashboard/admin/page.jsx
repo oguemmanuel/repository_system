@@ -60,6 +60,7 @@ const AdminDashboard = () => {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         })
 
         if (!response.ok) {
@@ -90,6 +91,7 @@ const AdminDashboard = () => {
       // Fetch users
       const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (usersResponse.ok) {
@@ -101,6 +103,7 @@ const AdminDashboard = () => {
       // Fetch resources
       const resourcesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (resourcesResponse.ok) {
@@ -112,6 +115,7 @@ const AdminDashboard = () => {
       // Fetch pending resources
       const pendingResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/admin`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (pendingResponse.ok) {
@@ -123,6 +127,7 @@ const AdminDashboard = () => {
       // Fetch active users count
       const activeUsersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users?isActive=true`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (activeUsersResponse.ok) {
@@ -146,6 +151,7 @@ const AdminDashboard = () => {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify(newUser),
       })
 
@@ -182,6 +188,7 @@ const AdminDashboard = () => {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({
           fullName: selectedUser.fullName,
           phoneNumber: selectedUser.phoneNumber,
@@ -203,6 +210,7 @@ const AdminDashboard = () => {
             "Content-Type": "application/json",
           },
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
           body: JSON.stringify({ role: selectedUser.role }),
         })
 
@@ -231,6 +239,7 @@ const AdminDashboard = () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`, {
         method: "DELETE",
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (!response.ok) {
@@ -254,6 +263,7 @@ const AdminDashboard = () => {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({ isActive: !currentStatus }),
       })
 
@@ -284,6 +294,7 @@ const AdminDashboard = () => {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({
           status: "approved",
           approvalReason: approvalReason,
@@ -319,6 +330,7 @@ const AdminDashboard = () => {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({
           status: "rejected",
           rejectionReason: reason,
@@ -347,6 +359,7 @@ const AdminDashboard = () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}`, {
         method: "DELETE",
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (!response.ok) {

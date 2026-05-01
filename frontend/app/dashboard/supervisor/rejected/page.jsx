@@ -24,6 +24,7 @@ export default function RejectedResourcesPage() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         })
 
         if (!response.ok) {
@@ -57,6 +58,7 @@ export default function RejectedResourcesPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=rejected&supervisorId=${supervisorId}`,
         {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         },
       )
 

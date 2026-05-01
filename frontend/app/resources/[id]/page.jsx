@@ -25,6 +25,7 @@ export default function ResourceDetailPage({ params }) {
           `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
           {
             credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
           },
         );
 
@@ -59,6 +60,7 @@ export default function ResourceDetailPage({ params }) {
         {
           method: "PATCH",
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
           headers: {
             "Content-Type": "application/json",
           },
@@ -95,6 +97,7 @@ export default function ResourceDetailPage({ params }) {
         {
           method: "PATCH",
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
           headers: {
             "Content-Type": "application/json",
           },

@@ -40,6 +40,7 @@ export default function UsersPage() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         })
 
         if (!response.ok) {
@@ -71,6 +72,7 @@ export default function UsersPage() {
       // Fetch users
       const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (usersResponse.ok) {
@@ -91,6 +93,7 @@ export default function UsersPage() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/departments/all`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
       if (response.ok) {
         const data = await response.json()
@@ -146,6 +149,7 @@ export default function UsersPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify(newUser),
       })
 
@@ -193,6 +197,7 @@ export default function UsersPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({
           fullName: selectedUser.fullName,
           phoneNumber: selectedUser.phoneNumber,
@@ -214,6 +219,7 @@ export default function UsersPage() {
             "Content-Type": "application/json",
           },
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
           body: JSON.stringify({
             role: selectedUser.role,
             department: selectedUser.department,
@@ -245,6 +251,7 @@ export default function UsersPage() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`, {
         method: "DELETE",
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (!response.ok) {
@@ -268,6 +275,7 @@ export default function UsersPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({ isActive: !currentStatus }),
       })
 

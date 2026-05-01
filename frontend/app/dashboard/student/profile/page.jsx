@@ -63,6 +63,7 @@ export default function StudentProfile() {
         // Verify with backend
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         })
 
         if (!response.ok) {
@@ -105,6 +106,7 @@ export default function StudentProfile() {
       // Fetch user analytics
       const analyticsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/user`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (analyticsResponse.ok) {
@@ -138,6 +140,7 @@ export default function StudentProfile() {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({
           fullName: formData.fullName,
           phoneNumber: formData.phoneNumber,
@@ -189,6 +192,7 @@ export default function StudentProfile() {
           "Content-Type": "application/json",
         },
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         body: JSON.stringify({
           password: formData.newPassword,
         }),

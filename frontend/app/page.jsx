@@ -412,6 +412,7 @@ export default function Home() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         });
 
         if (response.ok) {
@@ -445,6 +446,7 @@ export default function Home() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
         method: "GET",
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       });
 
       if (response.ok) {

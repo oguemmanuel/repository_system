@@ -38,6 +38,7 @@ const PublicSearch = () => {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         })
 
         if (response.ok) {
@@ -213,6 +214,7 @@ const PublicSearch = () => {
           name: user ? undefined : commentorName, // Only send name for anonymous users
         }),
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (response.ok) {
@@ -276,6 +278,7 @@ const PublicSearch = () => {
           content: editContent,
         }),
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (response.ok) {
@@ -326,6 +329,7 @@ const PublicSearch = () => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments/${commentId}`, {
         method: "DELETE",
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (response.ok) {

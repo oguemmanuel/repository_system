@@ -15,6 +15,7 @@ export default function LogoutPage() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
           method: "GET",
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         })
 
         if (response.ok) {

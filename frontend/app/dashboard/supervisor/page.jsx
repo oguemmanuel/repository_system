@@ -95,6 +95,7 @@ export default function SupervisorDashboard() {
       // Fetch pending approvals
       const pendingResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/supervisor`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       // Fetch approved projects
@@ -102,6 +103,7 @@ export default function SupervisorDashboard() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved&supervisorId=` + userData.id,
         {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         },
       )
 
@@ -110,12 +112,14 @@ export default function SupervisorDashboard() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=rejected&supervisorId=` + userData.id,
         {
           credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         },
       )
 
       // Fetch supervisor analytics
       const analyticsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/supervisor`, {
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
       })
 
       if (!pendingResponse.ok || !approvedResponse.ok || !rejectedResponse.ok) {
@@ -161,6 +165,7 @@ export default function SupervisorDashboard() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${selectedResource.id}/status`, {
         method: "PATCH",
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         headers: {
           "Content-Type": "application/json",
         },
@@ -203,6 +208,7 @@ export default function SupervisorDashboard() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${selectedResource.id}/status`, {
         method: "PATCH",
         credentials: "include",
+        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
         headers: {
           "Content-Type": "application/json",
         },
