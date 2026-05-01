@@ -85,7 +85,6 @@ export default function LoginPage() {
             "Content-Type": "application/json",
           },
           credentials: "include",
-        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
           body: JSON.stringify(formData),
         },
       );
@@ -97,12 +96,10 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      // Store JWT token
       if (data.token) {
         localStorage.setItem("token", data.token);
       }
 
-      // Store user data
       if (formData.rememberMe) {
         localStorage.setItem("user", JSON.stringify(data.user));
       } else {
@@ -198,7 +195,6 @@ export default function LoginPage() {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
                   strokeLinecap="round"
@@ -220,7 +216,6 @@ export default function LoginPage() {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
                   strokeLinecap="round"
