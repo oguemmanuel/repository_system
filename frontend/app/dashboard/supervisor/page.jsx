@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -13,10 +13,10 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { toast } from "sonner"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import {
   FileText,
   GraduationCap,
@@ -30,260 +30,268 @@ import {
   Loader2,
   XCircle,
   CheckCircle2,
-} from "lucide-react"
-import DashboardNav from "@/components/dashboard-nav"
-import DashboardHeader from "@/components/dashboard-header"
-import DataTable from "@/components/data-table"
-import { useRouter } from "next/navigation"
-import AISummaryButton from "@/components/ai-summary-button"
+} from "lucide-react";
+import DashboardNav from "@/components/dashboard-nav";
+import DashboardHeader from "@/components/dashboard-header";
+import DataTable from "@/components/data-table";
+import { useRouter } from "next/navigation";
+import AISummaryButton from "@/components/ai-summary-button";
 
 export default function SupervisorDashboard() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [pendingApprovals, setPendingApprovals] = useState([])
-  const [approvedProjects, setApprovedProjects] = useState([])
-  const [rejectedProjects, setRejectedProjects] = useState([])
-  const [processingAction, setProcessingAction] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [pendingApprovals, setPendingApprovals] = useState([]);
+  const [approvedProjects, setApprovedProjects] = useState([]);
+  const [rejectedProjects, setRejectedProjects] = useState([]);
+  const [processingAction, setProcessingAction] = useState(false);
   const [stats, setStats] = useState({
     totalSupervised: 0,
     pendingResources: 0,
     approvedResources: 0,
     rejectedResources: 0,
     thisMonth: 0,
-  })
-  const [selectedResource, setSelectedResource] = useState(null)
-  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
-  const [rejectionReason, setRejectionReason] = useState("")
-  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false)
-  const [approvalReason, setApprovalReason] = useState("")
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
-  const [successMessage, setSuccessMessage] = useState("")
-  const [actionType, setActionType] = useState("") // "approve" or "reject"
+  });
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
+  const [approvalReason, setApprovalReason] = useState("");
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [actionType, setActionType] = useState("");
 
-  const router = useRouter()
+  const router = useRouter();
 
-  // Check authentication on component mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Try to get user from localStorage first
-        const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user")
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser)
-          if (parsedUser.role !== "supervisor") {
-            router.push(`/dashboard/${parsedUser.role}`)
-            return
-          }
-          setUser(parsedUser)
+        const storedUser =
+          localStorage.getItem("user") || sessionStorage.getItem("user");
+        if (!storedUser) {
+          router.push("/login");
+          return;
         }
-
-        setUser(parsedUser)
-        fetchData(parsedUser)
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser.role !== "supervisor") {
+          router.push(`/dashboard/${parsedUser.role}`);
+          return;
+        }
+        setUser(parsedUser);
+        fetchData(parsedUser);
       } catch (error) {
-        console.error("Auth check error:", error)
-        router.push("/login")
+        console.error("Auth check error:", error);
+        router.push("/login");
       }
-    }
+    };
+    checkAuth();
+  }, [router]);
 
-    checkAuth()
-  }, [router])
+  const getToken = () => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token");
+    }
+    return null;
+  };
+
+  const authHeaders = () => {
+    const token = getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
   const fetchData = async (userData) => {
-    setLoading(true)
+    setLoading(true);
     try {
-      // Fetch pending approvals
-      const pendingResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/supervisor`, {
-        credentials: "include",
-        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
-      })
+      const pendingResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resources/pending/supervisor`,
+        {
+          credentials: "include",
+          headers: authHeaders(),
+        },
+      );
 
-      // Fetch approved projects
       const approvedResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved&supervisorId=` + userData.id,
-        {
-          credentials: "include",
-        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
-        },
-      )
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=approved&supervisorId=` +
+          userData.id,
+        { credentials: "include", headers: authHeaders() },
+      );
 
-      // Fetch rejected projects
       const rejectedResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=rejected&supervisorId=` + userData.id,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resources?status=rejected&supervisorId=` +
+          userData.id,
+        { credentials: "include", headers: authHeaders() },
+      );
+
+      const analyticsResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/analytics/supervisor`,
         {
           credentials: "include",
-        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
+          headers: authHeaders(),
         },
-      )
-
-      // Fetch supervisor analytics
-      const analyticsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/supervisor`, {
-        credentials: "include",
-        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
-      })
+      );
 
       if (!pendingResponse.ok || !approvedResponse.ok || !rejectedResponse.ok) {
-        throw new Error("Failed to fetch resources")
+        throw new Error("Failed to fetch resources");
       }
 
-      const pendingData = await pendingResponse.json()
-      const approvedData = await approvedResponse.json()
-      const rejectedData = await rejectedResponse.json()
+      const pendingData = await pendingResponse.json();
+      const approvedData = await approvedResponse.json();
+      const rejectedData = await rejectedResponse.json();
 
-      setPendingApprovals(pendingData.resources || [])
-      setApprovedProjects(approvedData.resources || [])
-      setRejectedProjects(rejectedData.resources || [])
+      setPendingApprovals(pendingData.resources || []);
+      setApprovedProjects(approvedData.resources || []);
+      setRejectedProjects(rejectedData.resources || []);
 
       if (analyticsResponse.ok) {
-        const analyticsData = await analyticsResponse.json()
+        const analyticsData = await analyticsResponse.json();
         setStats({
           totalSupervised: analyticsData.analytics.totalSupervised || 0,
           pendingResources: analyticsData.analytics.pendingResources || 0,
           approvedResources: analyticsData.analytics.approvedResources || 0,
           rejectedResources: analyticsData.analytics.rejectedResources || 0,
           thisMonth: pendingData.resources.filter((p) => {
-            const date = new Date(p.createdAt)
-            const now = new Date()
-            return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+            const date = new Date(p.createdAt);
+            const now = new Date();
+            return (
+              date.getMonth() === now.getMonth() &&
+              date.getFullYear() === now.getFullYear()
+            );
           }).length,
-        })
+        });
       }
     } catch (error) {
-      console.error("Error fetching resources:", error)
-      toast.error("Failed to load resources. Please try again later.")
+      console.error("Error fetching resources:", error);
+      toast.error("Failed to load resources. Please try again later.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleApprove = async (e) => {
-    e?.preventDefault()
-    if (!selectedResource || !approvalReason) return
-
-    setProcessingAction(true)
+    e?.preventDefault();
+    if (!selectedResource || !approvalReason) return;
+    setProcessingAction(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${selectedResource.id}/status`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resources/${selectedResource.id}/status`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify({ status: "approved", approvalReason }),
         },
-        body: JSON.stringify({
-          status: "approved",
-          approvalReason: approvalReason,
-        }),
-      })
-
+      );
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Failed to approve resource")
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to approve resource");
       }
-
-      setActionType("approve")
-      setSuccessMessage("Resource has been approved and published successfully!")
-      setShowSuccessDialog(true)
-      setIsApproveDialogOpen(false)
-      setApprovalReason("")
-      setSelectedResource(null)
-
-      // Refresh data
-      if (user) {
-        fetchData(user)
-      }
+      setActionType("approve");
+      setSuccessMessage(
+        "Resource has been approved and published successfully!",
+      );
+      setShowSuccessDialog(true);
+      setIsApproveDialogOpen(false);
+      setApprovalReason("");
+      setSelectedResource(null);
+      if (user) fetchData(user);
     } catch (error) {
-      console.error("Error approving resource:", error)
-      toast.error(error.message || "Failed to approve resource. Please try again.")
+      console.error("Error approving resource:", error);
+      toast.error(
+        error.message || "Failed to approve resource. Please try again.",
+      );
     } finally {
-      setProcessingAction(false)
+      setProcessingAction(false);
     }
-  }
+  };
 
   const handleReject = async (e) => {
-    e.preventDefault()
-    if (!selectedResource || !rejectionReason) return
-
-    setProcessingAction(true)
+    e.preventDefault();
+    if (!selectedResource || !rejectionReason) return;
+    setProcessingAction(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${selectedResource.id}/status`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { ...( typeof window !== "undefined" && localStorage.getItem("token") ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {} ) },
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/resources/${selectedResource.id}/status`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify({ status: "rejected", rejectionReason }),
         },
-        body: JSON.stringify({
-          status: "rejected",
-          rejectionReason: rejectionReason,
-        }),
-      })
-
+      );
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Failed to reject resource")
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to reject resource");
       }
-
-      setActionType("reject")
-      setSuccessMessage("Resource has been rejected successfully.")
-      setShowSuccessDialog(true)
-      setIsRejectDialogOpen(false)
-      setRejectionReason("")
-      setSelectedResource(null)
-
-      // Refresh data
-      if (user) {
-        fetchData(user)
-      }
+      setActionType("reject");
+      setSuccessMessage("Resource has been rejected successfully.");
+      setShowSuccessDialog(true);
+      setIsRejectDialogOpen(false);
+      setRejectionReason("");
+      setSelectedResource(null);
+      if (user) fetchData(user);
     } catch (error) {
-      console.error("Error rejecting resource:", error)
-      toast.error(error.message || "Failed to reject resource. Please try again.")
+      console.error("Error rejecting resource:", error);
+      toast.error(
+        error.message || "Failed to reject resource. Please try again.",
+      );
     } finally {
-      setProcessingAction(false)
+      setProcessingAction(false);
     }
-  }
+  };
 
   const handleDownload = (resourceId) => {
-    window.open(`${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/download`, "_blank")
-  }
+    window.open(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/resources/${resourceId}/download`,
+      "_blank",
+    );
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-slate-50">
         <div className="flex flex-col items-center">
           <Loader2 className="h-12 w-12 text-blue-600 animate-spin mb-4" />
-          <p className="text-lg font-medium text-blue-700">Loading dashboard...</p>
+          <p className="text-lg font-medium text-blue-700">
+            Loading dashboard...
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   const filteredPending = pendingApprovals.filter(
     (project) =>
       project.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (project.studentName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (project.studentName || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       project.type?.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  );
 
   const filteredApproved = approvedProjects.filter(
     (project) =>
       project.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (project.studentName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (project.studentName || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       project.type?.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  );
 
   const filteredRejected = rejectedProjects.filter(
     (project) =>
       project.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (project.studentName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (project.studentName || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       project.type?.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  );
 
   const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return "Good morning"
-    if (hour < 18) return "Good afternoon"
-    return "Good evening"
-  }
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 to-blue-50">
@@ -294,10 +302,14 @@ export default function SupervisorDashboard() {
             <div className="mb-6 mt-2">
               <div className="flex items-center space-x-2 px-2">
                 <GraduationCap className="h-6 w-6 text-blue-200" />
-                <h2 className="text-xl font-bold text-blue-100">Supervisor Portal</h2>
+                <h2 className="text-xl font-bold text-blue-100">
+                  Supervisor Portal
+                </h2>
               </div>
               <div className="mt-3 px-2">
-                <p className="text-sm text-blue-300">{user?.fullName || "Supervisor"}</p>
+                <p className="text-sm text-blue-300">
+                  {user?.fullName || "Supervisor"}
+                </p>
                 <p className="text-xs text-blue-400">{user?.email || ""}</p>
               </div>
             </div>
@@ -310,7 +322,9 @@ export default function SupervisorDashboard() {
               <h1 className="text-3xl font-bold tracking-tight text-blue-800">
                 {getGreeting()}, {user?.fullName || "Supervisor"}!
               </h1>
-              <p className="text-blue-600">Review and approve student submissions.</p>
+              <p className="text-blue-600">
+                Review and approve student submissions.
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/dashboard/supervisor/profile">
@@ -336,38 +350,54 @@ export default function SupervisorDashboard() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card className="border-0 shadow-md bg-gradient-to-br from-amber-50 to-amber-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-amber-900">Pending Approvals</CardTitle>
+                <CardTitle className="text-sm font-medium text-amber-900">
+                  Pending Approvals
+                </CardTitle>
                 <FileText className="h-4 w-4 text-amber-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-amber-800">{stats.pendingResources}</div>
+                <div className="text-2xl font-bold text-amber-800">
+                  {stats.pendingResources}
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-emerald-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-emerald-900">Approved Projects</CardTitle>
+                <CardTitle className="text-sm font-medium text-emerald-900">
+                  Approved Projects
+                </CardTitle>
                 <GraduationCap className="h-4 w-4 text-emerald-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-emerald-800">{stats.approvedResources}</div>
+                <div className="text-2xl font-bold text-emerald-800">
+                  {stats.approvedResources}
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-md bg-gradient-to-br from-rose-50 to-rose-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-rose-900">Rejected Resources</CardTitle>
+                <CardTitle className="text-sm font-medium text-rose-900">
+                  Rejected Resources
+                </CardTitle>
                 <XCircle className="h-4 w-4 text-rose-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-rose-800">{stats.rejectedResources}</div>
+                <div className="text-2xl font-bold text-rose-800">
+                  {stats.rejectedResources}
+                </div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-md bg-gradient-to-br from-violet-50 to-violet-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-violet-900">This Month</CardTitle>
+                <CardTitle className="text-sm font-medium text-violet-900">
+                  This Month
+                </CardTitle>
                 <FileText className="h-4 w-4 text-violet-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-violet-800">{stats.thisMonth}</div>
+                <div className="text-2xl font-bold text-violet-800">
+                  {stats.thisMonth}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -384,7 +414,10 @@ export default function SupervisorDashboard() {
           </div>
           <Tabs defaultValue="pending" className="space-y-4">
             <TabsList className="bg-blue-100">
-              <TabsTrigger value="pending" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="pending"
+                className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+              >
                 Pending Approvals
               </TabsTrigger>
               <TabsTrigger
@@ -393,7 +426,10 @@ export default function SupervisorDashboard() {
               >
                 Approved Projects
               </TabsTrigger>
-              <TabsTrigger value="rejected" className="data-[state=active]:bg-rose-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="rejected"
+                className="data-[state=active]:bg-rose-600 data-[state=active]:text-white"
+              >
                 Rejected Projects
               </TabsTrigger>
             </TabsList>
@@ -408,15 +444,13 @@ export default function SupervisorDashboard() {
                         header: "Type",
                         accessorKey: "type",
                         cell: (info) => {
-                          const type = info.getValue()
-                          let displayType = type
-
-                          if (type === "past-exam") displayType = "Past Exam"
-                          else if (type === "mini-project") displayType = "Mini Project"
-                          else if (type === "final-project") displayType = "Final Year Project"
-                          else if (type === "thesis") displayType = "Thesis"
-
-                          return displayType
+                          const type = info.getValue();
+                          if (type === "past-exam") return "Past Exam";
+                          if (type === "mini-project") return "Mini Project";
+                          if (type === "final-project")
+                            return "Final Year Project";
+                          if (type === "thesis") return "Thesis";
+                          return type;
                         },
                       },
                       {
@@ -424,17 +458,12 @@ export default function SupervisorDashboard() {
                         accessorKey: "studentName",
                         cell: (info) => info.getValue() || "N/A",
                       },
-                      {
-                        header: "Department",
-                        accessorKey: "department",
-                      },
+                      { header: "Department", accessorKey: "department" },
                       {
                         header: "Submission Date",
                         accessorKey: "createdAt",
-                        cell: (info) => {
-                          const date = new Date(info.getValue())
-                          return date.toLocaleDateString()
-                        },
+                        cell: (info) =>
+                          new Date(info.getValue()).toLocaleDateString(),
                       },
                       {
                         header: "Actions",
@@ -450,14 +479,17 @@ export default function SupervisorDashboard() {
                                 View
                               </Button>
                             </Link>
-                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
+                            <AISummaryButton
+                              resourceId={info.row.original.id}
+                              title={info.row.original.title}
+                            />
                             <Button
                               variant="default"
                               size="sm"
                               disabled={processingAction}
                               onClick={() => {
-                                setSelectedResource(info.row.original)
-                                setIsApproveDialogOpen(true)
+                                setSelectedResource(info.row.original);
+                                setIsApproveDialogOpen(true);
                               }}
                               className="bg-emerald-600 hover:bg-emerald-700"
                             >
@@ -469,8 +501,8 @@ export default function SupervisorDashboard() {
                               size="sm"
                               disabled={processingAction}
                               onClick={() => {
-                                setSelectedResource(info.row.original)
-                                setIsRejectDialogOpen(true)
+                                setSelectedResource(info.row.original);
+                                setIsRejectDialogOpen(true);
                               }}
                               className="bg-rose-600 hover:bg-rose-700"
                             >
@@ -480,7 +512,9 @@ export default function SupervisorDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDownload(info.row.original.id)}
+                              onClick={() =>
+                                handleDownload(info.row.original.id)
+                              }
                               className="border-slate-300 text-slate-700 hover:bg-slate-50"
                             >
                               <Download className="h-4 w-4 mr-1" />
@@ -495,8 +529,13 @@ export default function SupervisorDashboard() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-lg shadow-sm">
                   <FileText className="h-12 w-12 text-amber-500 mb-4" />
-                  <h3 className="text-lg font-medium text-amber-800">No pending approvals</h3>
-                  <p className="text-amber-600 mt-2">There are no projects waiting for your approval at this time.</p>
+                  <h3 className="text-lg font-medium text-amber-800">
+                    No pending approvals
+                  </h3>
+                  <p className="text-amber-600 mt-2">
+                    There are no projects waiting for your approval at this
+                    time.
+                  </p>
                 </div>
               )}
             </TabsContent>
@@ -511,15 +550,13 @@ export default function SupervisorDashboard() {
                         header: "Type",
                         accessorKey: "type",
                         cell: (info) => {
-                          const type = info.getValue()
-                          let displayType = type
-
-                          if (type === "past-exam") displayType = "Past Exam"
-                          else if (type === "mini-project") displayType = "Mini Project"
-                          else if (type === "final-project") displayType = "Final Year Project"
-                          else if (type === "thesis") displayType = "Thesis"
-
-                          return displayType
+                          const type = info.getValue();
+                          if (type === "past-exam") return "Past Exam";
+                          if (type === "mini-project") return "Mini Project";
+                          if (type === "final-project")
+                            return "Final Year Project";
+                          if (type === "thesis") return "Thesis";
+                          return type;
                         },
                       },
                       {
@@ -527,17 +564,12 @@ export default function SupervisorDashboard() {
                         accessorKey: "studentName",
                         cell: (info) => info.getValue() || "N/A",
                       },
-                      {
-                        header: "Department",
-                        accessorKey: "department",
-                      },
+                      { header: "Department", accessorKey: "department" },
                       {
                         header: "Approval Date",
                         accessorKey: "updatedAt",
-                        cell: (info) => {
-                          const date = new Date(info.getValue())
-                          return date.toLocaleDateString()
-                        },
+                        cell: (info) =>
+                          new Date(info.getValue()).toLocaleDateString(),
                       },
                       {
                         header: "Actions",
@@ -553,11 +585,16 @@ export default function SupervisorDashboard() {
                                 View
                               </Button>
                             </Link>
-                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
+                            <AISummaryButton
+                              resourceId={info.row.original.id}
+                              title={info.row.original.title}
+                            />
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDownload(info.row.original.id)}
+                              onClick={() =>
+                                handleDownload(info.row.original.id)
+                              }
                               className="border-slate-300 text-slate-700 hover:bg-slate-50"
                             >
                               <Download className="h-4 w-4 mr-1" />
@@ -572,8 +609,12 @@ export default function SupervisorDashboard() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-lg shadow-sm">
                   <GraduationCap className="h-12 w-12 text-emerald-500 mb-4" />
-                  <h3 className="text-lg font-medium text-emerald-800">No approved projects</h3>
-                  <p className="text-emerald-600 mt-2">You haven't approved any projects yet.</p>
+                  <h3 className="text-lg font-medium text-emerald-800">
+                    No approved projects
+                  </h3>
+                  <p className="text-emerald-600 mt-2">
+                    You haven't approved any projects yet.
+                  </p>
                 </div>
               )}
             </TabsContent>
@@ -588,15 +629,13 @@ export default function SupervisorDashboard() {
                         header: "Type",
                         accessorKey: "type",
                         cell: (info) => {
-                          const type = info.getValue()
-                          let displayType = type
-
-                          if (type === "past-exam") displayType = "Past Exam"
-                          else if (type === "mini-project") displayType = "Mini Project"
-                          else if (type === "final-project") displayType = "Final Year Project"
-                          else if (type === "thesis") displayType = "Thesis"
-
-                          return displayType
+                          const type = info.getValue();
+                          if (type === "past-exam") return "Past Exam";
+                          if (type === "mini-project") return "Mini Project";
+                          if (type === "final-project")
+                            return "Final Year Project";
+                          if (type === "thesis") return "Thesis";
+                          return type;
                         },
                       },
                       {
@@ -604,23 +643,21 @@ export default function SupervisorDashboard() {
                         accessorKey: "studentName",
                         cell: (info) => info.getValue() || "N/A",
                       },
-                      {
-                        header: "Department",
-                        accessorKey: "department",
-                      },
+                      { header: "Department", accessorKey: "department" },
                       {
                         header: "Rejection Date",
                         accessorKey: "updatedAt",
-                        cell: (info) => {
-                          const date = new Date(info.getValue())
-                          return date.toLocaleDateString()
-                        },
+                        cell: (info) =>
+                          new Date(info.getValue()).toLocaleDateString(),
                       },
                       {
                         header: "Rejection Reason",
                         accessorKey: "rejectionReason",
                         cell: (info) => (
-                          <div className="max-w-xs truncate" title={info.getValue()}>
+                          <div
+                            className="max-w-xs truncate"
+                            title={info.getValue()}
+                          >
                             {info.getValue() || "No reason provided"}
                           </div>
                         ),
@@ -639,11 +676,16 @@ export default function SupervisorDashboard() {
                                 View
                               </Button>
                             </Link>
-                            <AISummaryButton resourceId={info.row.original.id} title={info.row.original.title} />
+                            <AISummaryButton
+                              resourceId={info.row.original.id}
+                              title={info.row.original.title}
+                            />
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDownload(info.row.original.id)}
+                              onClick={() =>
+                                handleDownload(info.row.original.id)
+                              }
                               className="border-slate-300 text-slate-700 hover:bg-slate-50"
                             >
                               <Download className="h-4 w-4 mr-1" />
@@ -658,18 +700,26 @@ export default function SupervisorDashboard() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-lg shadow-sm">
                   <XCircle className="h-12 w-12 text-rose-500 mb-4" />
-                  <h3 className="text-lg font-medium text-rose-800">No rejected projects</h3>
-                  <p className="text-rose-600 mt-2">You haven't rejected any projects yet.</p>
+                  <h3 className="text-lg font-medium text-rose-800">
+                    No rejected projects
+                  </h3>
+                  <p className="text-rose-600 mt-2">
+                    You haven't rejected any projects yet.
+                  </p>
                 </div>
               )}
             </TabsContent>
           </Tabs>
 
-          {/* Rejection Dialog */}
-          <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+          <Dialog
+            open={isRejectDialogOpen}
+            onOpenChange={setIsRejectDialogOpen}
+          >
             <DialogContent className="bg-white border-0 shadow-lg">
               <DialogHeader>
-                <DialogTitle className="text-rose-800">Reject Resource</DialogTitle>
+                <DialogTitle className="text-rose-800">
+                  Reject Resource
+                </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleReject} className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -707,11 +757,15 @@ export default function SupervisorDashboard() {
             </DialogContent>
           </Dialog>
 
-          {/* Approval Dialog */}
-          <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
+          <Dialog
+            open={isApproveDialogOpen}
+            onOpenChange={setIsApproveDialogOpen}
+          >
             <DialogContent className="bg-white border-0 shadow-lg">
               <DialogHeader>
-                <DialogTitle className="text-emerald-800">Approve Resource</DialogTitle>
+                <DialogTitle className="text-emerald-800">
+                  Approve Resource
+                </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleApprove} className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -729,7 +783,11 @@ export default function SupervisorDashboard() {
                   />
                 </div>
                 <DialogFooter>
-                  <Button type="submit" disabled={processingAction} className="bg-emerald-600 hover:bg-emerald-700">
+                  <Button
+                    type="submit"
+                    disabled={processingAction}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
                     {processingAction ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -744,7 +802,6 @@ export default function SupervisorDashboard() {
             </DialogContent>
           </Dialog>
 
-          {/* Success Dialog */}
           <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
             <DialogContent className="bg-white border-0 shadow-lg">
               <DialogHeader>
@@ -756,9 +813,13 @@ export default function SupervisorDashboard() {
                   )}
                 </div>
                 <DialogTitle className="text-center">
-                  {actionType === "approve" ? "Approval Successful" : "Rejection Successful"}
+                  {actionType === "approve"
+                    ? "Approval Successful"
+                    : "Rejection Successful"}
                 </DialogTitle>
-                <DialogDescription className="text-center">{successMessage}</DialogDescription>
+                <DialogDescription className="text-center">
+                  {successMessage}
+                </DialogDescription>
               </DialogHeader>
               <DialogFooter className="sm:justify-center">
                 <Button
@@ -774,5 +835,5 @@ export default function SupervisorDashboard() {
         </main>
       </div>
     </div>
-  )
+  );
 }
